@@ -79,7 +79,19 @@ const profiles=[
 {name:'Aisha',location:'North York, Ontario',age:'30s',type:'Friendship',interests:['Art','Books','Coffee'],bio:'Creative, curious and always open to meeting interesting people.'},
 {name:'Marcus',location:'Brampton, Ontario',age:'40s',type:'Companionship',interests:['Sports','Travel','Business'],bio:'Positive and outgoing, interested in meaningful companionship and shared experiences.'},
 {name:'Sarah',location:'Toronto, Ontario',age:'50s',type:'Friendship & Companionship',interests:['Wellness','Cooking','Travel'],bio:'Warm, social and interested in building authentic friendships.'},
-{name:'James',location:'Vaughan, Ontario',age:'30s',type:'Meaningful Relationship',interests:['Technology','Music','Fitness'],bio:'Easygoing and ambitious, looking for someone genuine with shared interests.'}
+{name:'James',location:'Vaughan, Ontario',age:'30s',type:'Meaningful Relationship',interests:['Technology','Music','Fitness'],bio:'Easygoing and ambitious, looking for someone genuine with shared interests.'},
+
+{name:'Grace',location:'Scarborough, Ontario',age:'30s',type:'Friendship',interests:['Travel','Fashion','Food'],bio:'Social and adventurous, interested in meeting genuine people and discovering new experiences.'},
+{name:'Michael',location:'Etobicoke, Ontario',age:'40s',type:'Companionship',interests:['Sports','Music','Travel'],bio:'Outgoing and easygoing, enjoys good conversations and shared experiences.'},
+{name:'Nadia',location:'Toronto, Ontario',age:'40s',type:'Meaningful Relationship',interests:['Cooking','Books','Travel'],bio:'Warm-hearted and family-oriented, looking for a genuine and respectful connection.'},
+{name:'Kevin',location:'Richmond Hill, Ontario',age:'30s',type:'Friendship & Community',interests:['Technology','Fitness','Business'],bio:'Ambitious and friendly, enjoys networking and connecting with positive people.'},
+{name:'Linda',location:'Markham, Ontario',age:'50s',type:'Friendship & Companionship',interests:['Wellness','Travel','Cooking'],bio:'Enjoys an active lifestyle, travel and meaningful conversations.'},
+{name:'Robert',location:'Pickering, Ontario',age:'40s',type:'Meaningful Relationship',interests:['Fitness','Music','Food'],bio:'Positive, respectful and interested in building something genuine.'},
+{name:'Sophia',location:'Ajax, Ontario',age:'30s',type:'Friendship',interests:['Art','Travel','Coffee'],bio:'Creative and curious, looking to meet interesting people with similar interests.'},
+{name:'Anthony',location:'Oakville, Ontario',age:'50s',type:'Companionship',interests:['Golf','Travel','Business'],bio:'Enjoys staying active, travelling and sharing good experiences with others.'},
+{name:'Emily',location:'Toronto, Ontario',age:'20s',type:'Friendship & Community',interests:['Music','Art','Food'],bio:'Energetic and creative, interested in meeting new people and building friendships.'},
+{name:'Christopher',location:'North York, Ontario',age:'40s',type:'Meaningful Relationship',interests:['Cooking','Fitness','Travel'],bio:'Calm, active and genuine, hoping to meet someone with shared values.'},
+{name:'Jessica',location:'Mississauga, Ontario',age:'30s',type:'Friendship & Companionship',interests:['Wellness','Books','Travel'],bio:'Friendly and positive, enjoys exploring the city and meeting authentic people.'}
 ];
 function card(p){return `<article class="profile-card"><div class="avatar">${p.name[0]}</div><div><h3>${p.name}</h3><p class="meta">${p.location} · ${p.age}</p></div><span class="tag">${p.type}</span><div class="tags">${p.interests.map(i=>`<span>${i}</span>`).join('')}</div><p>${p.bio}</p><small>DEMO PROFILE</small></article>`}
 function render(list){const r=document.getElementById('results'),n=document.getElementById('noResults');r.innerHTML=list.map(card).join('');n.hidden=list.length!==0}

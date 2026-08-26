@@ -47,7 +47,49 @@
       <div class="eyebrow">RealConnect</div>
       <h1>Real people.<br>Real connections.</h1>
       <p>A modern platform designed to help people discover meaningful connections based on who they are, what they're looking for, and what matters to them.</p>
-      <div class="search-box" aria-label="RealConnect demo search"><input id="searchInput" type="search" placeholder="Search by name, location, interest or connection type..." autocomplete="off"><button class="search-btn" onclick="runSearch()">Search</button></div><div class="search-hint">Try: <button onclick="quickSearch(\"Toronto\")">Toronto</button><button onclick="quickSearch(\"travel\")">Travel</button><button onclick="quickSearch(\"friendship\")">Friendship</button></div><div class="buttons"><a class="btn primary" href="#search-results">Explore Demo Profiles</a><a class="btn" href="#why">Learn More</a></div>
+      <div class="search-box" aria-label="RealConnect demo search"><input id="searchInput" type="search" placeholder="Search by name, location, interest or connection type..." autocomplete="off"><button class="search-btn" onclick="runSearch()">Search</button></div><div class="search-hint">
+  Try:
+  <button onclick="quickSearch('Toronto')">Toronto</button>
+  <button onclick="quickSearch('travel')">Travel</button>
+  <button onclick="quickSearch('friendship')">Friendship</button>
+</div>
+
+<div class="filter-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:15px;">
+  <select id="locationFilter">
+    <option value="">All locations</option>
+    <option value="Toronto">Toronto</option>
+    <option value="North York">North York</option>
+    <option value="Mississauga">Mississauga</option>
+    <option value="Brampton">Brampton</option>
+    <option value="Scarborough">Scarborough</option>
+    <option value="Etobicoke">Etobicoke</option>
+    <option value="Vaughan">Vaughan</option>
+    <option value="Richmond Hill">Richmond Hill</option>
+    <option value="Markham">Markham</option>
+    <option value="Pickering">Pickering</option>
+    <option value="Ajax">Ajax</option>
+    <option value="Oakville">Oakville</option>
+  </select>
+
+  <select id="ageFilter">
+    <option value="">All ages</option>
+    <option value="20s">20s</option>
+    <option value="30s">30s</option>
+    <option value="40s">40s</option>
+    <option value="50s">50s</option>
+  </select>
+
+  <select id="typeFilter">
+    <option value="">All connection types</option>
+    <option value="Friendship">Friendship</option>
+    <option value="Friendship & Community">Friendship & Community</option>
+    <option value="Companionship">Companionship</option>
+    <option value="Meaningful Relationship">Meaningful Relationship</option>
+    <option value="Friendship & Companionship">Friendship & Companionship</option>
+  </select>
+
+  <button type="button" onclick="clearFilters()">Clear Filters</button>
+</div><div class="buttons"><a class="btn primary" href="#search-results">Explore Demo Profiles</a><a class="btn" href="#why">Learn More</a></div>
     </div>
   </section>
   <section id="why">
@@ -218,9 +260,49 @@ function quickSearch(q){
 document.getElementById('searchInput')
   .addEventListener('keydown',e=>{
     if(e.key==='Enter') runSearch();
+  }); function applyFilters(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const location = document.getElementById('locationFilter').value.toLowerCase();
+  const age = document.getElementById('ageFilter').value.toLowerCase();
+  const type = document.getElementById('typeFilter').value.toLowerCase();
+
+  const list = profiles.filter(p => {
+    const searchable = [
+      p.name,
+      p.location,
+      p.type,
+      p.age,
+      p.bio,
+      ...p.interests
+    ].join(' ').toLowerCase();
+
+    const matchesSearch = !q || searchable.includes(q);
+    const matchesLocation = !location || p.location.toLowerCase().includes(location);
+    const matchesAge = !age || p.age.toLowerCase() === age;
+    const matchesType = !type || p.type.toLowerCase() === type;
+
+    return matchesSearch && matchesLocation && matchesAge && matchesType;
   });
 
+  render(list);
+
+  document.getElementById('search-results')
+    .scrollIntoView({behavior:'smooth'});
+}
+
+function clearFilters(){
+  document.getElementById('searchInput').value = '';
+  document.getElementById('locationFilter').value = '';
+  document.getElementById('ageFilter').value = '';
+  document.getElementById('typeFilter').value = '';
+
+  render(profiles);
+}document.getElementById('locationFilter').addEventListener('change', applyFilters);
+document.getElementById('ageFilter').addEventListener('change', applyFilters);
+document.getElementById('typeFilter').addEventListener('change', applyFilters);
+
 render(profiles);
+</script>
 </body>
 </html>
 

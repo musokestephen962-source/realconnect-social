@@ -218,10 +218,9 @@ const profiles=[
 {name:'Christopher',location:'North York, Ontario',age:'40s',type:'Meaningful Relationship',interests:['Cooking','Fitness','Travel'],bio:'Calm, active and genuine, hoping to meet someone with shared values.'},
 {name:'Jessica',location:'Mississauga, Ontario',age:'30s',type:'Friendship & Companionship',interests:['Wellness','Books','Travel'],bio:'Friendly and positive, enjoys exploring the city and meeting authentic people.'}
 ];
-function card(p){return `<article class="profile-card"><div class="avatar">${p.name[0]}</div><div><h3>${p.name}</h3><p class="meta">${p.location} · ${p.age}</p></div><span class="tag">${p.type}</span><div class="tags">${p.interests.map(i=>`<span>${i}</span>`).join('')}</div><p>${p.bio}</p><small>DEMO PROFILE</small></article>`}
 function render(list){
   const r=document.getElementById('results');
-  const n=document.getElementById('noResults');
+  const n=document.getElementById('noRefunction card(p){return `<article class="profile-card"><div class="avatar">${p.name[0]}</div><div><h3>${p.name}</h3><p class="meta">${p.location} · ${p.age}</p></div><span class="tag">${p.type}</span><div class="tags">${p.interests.map(i=>`<span>${i}</span>`).join('')}</div><p>${p.bio}</p><small>DEMO PROFILE</small><button class="btn primary" style="margin-top:15px;width:100%;" onclick="viewProfile('${p.name}')">View Profile</button></article>`}sults');
   const count=document.getElementById('resultCount');
 
   r.innerHTML=list.map(card).join('');

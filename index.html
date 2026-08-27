@@ -429,6 +429,7 @@ function closeProfile(){
   const modal = document.getElementById('profileModal');
   if(modal) modal.remove();
 }
-
-render(profiles);
+document.addEventListener('DOMContentLoaded', function(){
+  render(profiles);
+});
 </script>

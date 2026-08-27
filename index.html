@@ -297,7 +297,7 @@ document.getElementById('searchInput')
   const location = document.getElementById('locationFilter').value.toLowerCase();
   const age = document.getElementById('ageFilter').value.toLowerCase();
   const type = document.getElementById('typeFilter').value.toLowerCase();
-
+const interest = document.getElementById('interestFilter').value.toLowerCase();
   const list = profiles.filter(p => {
     const searchable = [
       p.name,
@@ -312,9 +312,9 @@ document.getElementById('searchInput')
     const matchesLocation = !location || p.location.toLowerCase().includes(location);
     const matchesAge = !age || p.age.toLowerCase() === age;
     const matchesType = !type || p.type.toLowerCase() === type;
-
+onst matchesInterest = !interest || p.interests.some(i => i.toLowerCase() === interest);
     return matchesSearch && matchesLocation && matchesAge && matchesType;
-  });
+  });return matchesSearch && matchesLocation && matchesAge && matchesType && matchesInterest;
 
   render(list);
 

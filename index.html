@@ -265,14 +265,21 @@ function render(list){
       : `${list.length} people found`;
   }
 }
-
 function runSearch(){
-  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const q = document.getElementById('searchInput')
+    .value.trim().toLowerCase();
 
-  const list=!q
+  const list = !q
     ? profiles
     : profiles.filter(p =>
-        [p.name,p.location,p.type,p.age,p.bio,...p.interests]
+        [
+          p.name,
+          p.location,
+          p.type,
+          p.age,
+          p.bio,
+          ...p.interests
+        ]
         .join(' ')
         .toLowerCase()
         .includes(q)
@@ -285,20 +292,33 @@ function runSearch(){
 }
 
 function quickSearch(q){
-  document.getElementById('searchInput').value=q;
+  document.getElementById('searchInput').value = q;
   runSearch();
 }
 
 document.getElementById('searchInput')
-  .addEventListener('keydown',e=>{
-    if(e.key==='Enter') runSearch();
-  }); function applyFilters(){
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const location = document.getElementById('locationFilter').value.toLowerCase();
-  const age = document.getElementById('ageFilter').value.toLowerCase();
-  const type = document.getElementById('typeFilter').value.toLowerCase();
-const interest = document.getElementById('interestFilter').value.toLowerCase();
+  .addEventListener('keydown', e => {
+    if(e.key === 'Enter') runSearch();
+  });
+
+function applyFilters(){
+  const q = document.getElementById('searchInput')
+    .value.trim().toLowerCase();
+
+  const location = document.getElementById('locationFilter')
+    .value.toLowerCase();
+
+  const age = document.getElementById('ageFilter')
+    .value.toLowerCase();
+
+  const type = document.getElementById('typeFilter')
+    .value.toLowerCase();
+
+  const interest = document.getElementById('interestFilter')
+    .value.toLowerCase();
+
   const list = profiles.filter(p => {
+
     const searchable = [
       p.name,
       p.location,
@@ -308,13 +328,33 @@ const interest = document.getElementById('interestFilter').value.toLowerCase();
       ...p.interests
     ].join(' ').toLowerCase();
 
-    const matchesSearch = !q || searchable.includes(q);
-    const matchesLocation = !location || p.location.toLowerCase().includes(location);
-    const matchesAge = !age || p.age.toLowerCase() === age;
-    const matchesType = !type || p.type.toLowerCase() === type;
-onst matchesInterest = !interest || p.interests.some(i => i.toLowerCase() === interest);
-    return matchesSearch && matchesLocation && matchesAge && matchesType;
-  });return matchesSearch && matchesLocation && matchesAge && matchesType && matchesInterest;
+    const matchesSearch =
+      !q || searchable.includes(q);
+
+    const matchesLocation =
+      !location ||
+      p.location.toLowerCase().includes(location);
+
+    const matchesAge =
+      !age ||
+      p.age.toLowerCase() === age;
+
+    const matchesType =
+      !type ||
+      p.type.toLowerCase() === type;
+
+    const matchesInterest =
+      !interest ||
+      p.interests.some(
+        i => i.toLowerCase() === interest
+      );
+
+    return matchesSearch &&
+           matchesLocation &&
+           matchesAge &&
+           matchesType &&
+           matchesInterest;
+  });
 
   render(list);
 
@@ -327,12 +367,24 @@ function clearFilters(){
   document.getElementById('locationFilter').value = '';
   document.getElementById('ageFilter').value = '';
   document.getElementById('typeFilter').value = '';
+  document.getElementById('interestFilter').value = '';
 
   render(profiles);
-}document.getElementById('locationFilter').addEventListener('change', applyFilters);
-document.getElementById('ageFilter').addEventListener('change', applyFilters);
-document.getElementById('typeFilter').addEventListener('change', applyFilters);
-  function viewProfile(name){
+}
+
+document.getElementById('locationFilter')
+  .addEventListener('change', applyFilters);
+
+document.getElementById('ageFilter')
+  .addEventListener('change', applyFilters);
+
+document.getElementById('typeFilter')
+  .addEventListener('change', applyFilters);
+
+document.getElementById('interestFilter')
+  .addEventListener('change', applyFilters);
+
+function viewProfile(name){
   const profile = profiles.find(p => p.name === name);
   if(!profile) return;
 
@@ -380,6 +432,3 @@ function closeProfile(){
 
 render(profiles);
 </script>
-</body>
-</html>
-

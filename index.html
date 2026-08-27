@@ -540,51 +540,53 @@ function viewProfile(name){
   modal.id = 'profileModal';
 
   modal.innerHTML = `
-    <div class="profile-modal-backdrop" onclick="closeProfile()">
+  <div class="profile-modal-backdrop" onclick="closeProfile()">
 
-      <div class="profile-modal" onclick="event.stopPropagation()">
+    <div class="profile-modal" onclick="event.stopPropagation()">
 
-        <button
-          class="profile-close"
-          onclick="closeProfile()">
-          ×
-        </button>
+      <button
+        class="profile-close"
+        onclick="closeProfile()"
+        aria-label="Close profile">
+        ×
+      </button>
 
-        <div class="avatar profile-avatar">
-          ${profile.name[0]}
-        </div>
-
-        <h2>${profile.name}</h2>
-
-        <p class="meta">
-          ${profile.location} · ${profile.age}
-        </p>
-
-        <span class="tag">
-          ${profile.type}
-        </span>
-
-        <div class="tags">
-          ${profile.interests
-            .map(i => `<span>${i}</span>`)
-            .join('')}
-        </div>
-
-        <p class="profile-bio">
-          ${profile.bio}
-        </p>
-
-        <small>DEMO PROFILE</small>
-
-        <button
-          class="btn primary profile-close-btn"
-          onclick="closeProfile()">
-          Close
-        </button>
-
+      <div class="avatar profile-avatar">
+        ${profile.name[0]}
       </div>
+
+      <h2>${profile.name}</h2>
+
+      <p class="meta">
+        ${profile.location} · ${profile.age}
+      </p>
+
+      <span class="tag">
+        ${profile.type}
+      </span>
+
+      <div class="tags">
+        ${profile.interests
+          .map(i => `<span>${i}</span>`)
+          .join('')}
+      </div>
+
+      <p class="profile-bio">
+        ${profile.bio}
+      </p>
+
+      <small>DEMO PROFILE</small>
+
+      <button
+        class="btn primary profile-close-btn"
+        onclick="closeProfile()">
+        Close
+      </button>
+
     </div>
-  `;
+
+  </div>
+`;
 
   document.body.appendChild(modal);
 }

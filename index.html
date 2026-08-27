@@ -265,27 +265,7 @@ function render(list){
       : `${list.length} people found`;
   }
 }
-function runSearch(){
-  const q = document.getElementById('searchInput')
-    .value.trim().toLowerCase();
 
-  const list = !q
-    ? profiles
-    : profiles.filter(p =>
-        [
-          p.name,
-          p.location,
-          p.type,
-          p.age,
-          p.bio,
-          ...p.interests
-        ]
-        .join(' ')
-        .toLowerCase()
-        .includes(q)
-      );
-
-  render(list);
 
   document.getElementById('search-results')
     .scrollIntoView({behavior:'smooth'});
@@ -305,7 +285,36 @@ function applyFilters(){
   const q = document.getElementById('searchInput')
     .value.trim().toLowerCase();
 
-  const location = document.getElementById('locationFilter')
+  const location = function runSearch(){
+  const q = document.getElementById('searchInput')
+    .value.trim().toLowerCase();
+
+  const list = profiles.filter(p => {
+    const name = String(p.name || '').toLowerCase();
+    const location = String(p.location || '').toLowerCase();
+    const age = String(p.age || '').toLowerCase();
+    const type = String(p.type || '').toLowerCase();
+    const bio = String(p.bio || '').toLowerCase();
+    const interests = (p.interests || [])
+      .join(' ')
+      .toLowerCase();
+
+    return (
+      !q ||
+      name.includes(q) ||
+      location.includes(q) ||
+      age.includes(q) ||
+      type.includes(q) ||
+      bio.includes(q) ||
+      interests.includes(q)
+    );
+  });
+
+  render(list);
+
+  document.getElementById('search-results')
+    .scrollIntoView({behavior:'smooth'});
+}document.getElementById('locationFilter')
     .value.toLowerCase();
 
   const age = document.getElementById('ageFilter')

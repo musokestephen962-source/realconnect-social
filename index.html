@@ -680,7 +680,7 @@ function viewProfile(name){
         
 <button
   class="connect-btn"
-  onclick="sendConnectionRequest()"
+  onclick='sendConnectionRequest(${JSON.stringify(profile.name)})'
 >
   Connect
 </button>
@@ -747,7 +747,7 @@ function closeProfile(){
   }
 }
 
-function sendConnectionRequest(){
+function sendConnectionRequest(name){
 
   const button =
     document.querySelector('.connect-btn');

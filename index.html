@@ -749,6 +749,18 @@ function closeProfile(){
 
 function sendConnectionRequest(name){
 
+  const connections =
+    JSON.parse(localStorage.getItem('realconnectConnections') || '[]');
+
+  if(!connections.includes(name)){
+    connections.push(name);
+  }
+
+  localStorage.setItem(
+    'realconnectConnections',
+    JSON.stringify(connections)
+  );
+
   const button =
     document.querySelector('.connect-btn');
 
@@ -763,6 +775,7 @@ function sendConnectionRequest(name){
 
     button.style.cursor = 'default';
   }
+}
 }
 document.addEventListener(
   'DOMContentLoaded',

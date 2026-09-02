@@ -747,7 +747,23 @@ function closeProfile(){
   }
 }
 
+function sendConnectionRequest(){
 
+  const button =
+    document.querySelector('.connect-btn');
+
+  if(button){
+
+    button.textContent =
+      'Request Sent ✓';
+
+    button.disabled = true;
+
+    button.style.opacity = '0.7';
+
+    button.style.cursor = 'default';
+  }
+}
 document.addEventListener(
   'DOMContentLoaded',
   function(){

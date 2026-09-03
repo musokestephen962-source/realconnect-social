@@ -776,6 +776,13 @@ function sendConnectionRequest(name){
     'realconnectConnections',
     JSON.stringify(connections)
   );
+    const list = document.getElementById('connectionsList');
+
+  if(list){
+    list.innerHTML = connections
+      .map(connection => `<p>${connection}</p>`)
+      .join('');
+  }
 
   const button =
     document.querySelector('.connect-btn');

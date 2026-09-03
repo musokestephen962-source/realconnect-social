@@ -826,9 +826,32 @@ function sendConnectionRequest(name){
 
     button.style.opacity = '0.7';
 
-    button.style.cursor = 'default';
+        button.style.cursor = 'default';
   }
 }
+
+function saveMyProfile(){
+  const fields =
+    document.querySelectorAll(
+      '#profileForm input, #profileForm textarea'
+    );
+
+  const profile = {
+    name: fields[0].value.trim(),
+    location: fields[1].value.trim(),
+    age: fields[2].value.trim(),
+    interests: fields[3].value.trim(),
+    bio: fields[4].value.trim()
+  };
+
+  localStorage.setItem(
+    'realconnectMyProfile',
+    JSON.stringify(profile)
+  );
+
+  alert('Profile saved successfully!');
+}
+
 document.addEventListener(
   'DOMContentLoaded',
   function(){

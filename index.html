@@ -880,7 +880,7 @@ function loginUser(){
     alert('Please enter your email and password.');
     return;
   }
-
+localStorage.setItem('realconnectLoggedIn', 'true');
   alert('Demo login successful!');
 }
 document.addEventListener(

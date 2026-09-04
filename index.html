@@ -865,7 +865,31 @@ function sendConnectionRequest(name){
         button.style.cursor = 'default';
   }
 }
+function editMyProfile(){
 
+  const savedProfile =
+    JSON.parse(localStorage.getItem('realconnectMyProfile') || 'null');
+
+  if(!savedProfile){
+    alert('No profile has been created yet.');
+    return;
+  }
+
+  const fields =
+    document.querySelectorAll(
+      '#profileForm input, #profileForm textarea'
+    );
+
+  fields[0].value = savedProfile.name || '';
+  fields[1].value = savedProfile.location || '';
+  fields[2].value = savedProfile.age || '';
+  fields[3].value = savedProfile.interests || '';
+  fields[4].value = savedProfile.bio || '';
+
+  document.getElementById('create-profile').scrollIntoView({
+    behavior:'smooth'
+  });
+}
 function saveMyProfile(){
   const fields =
     document.querySelectorAll(

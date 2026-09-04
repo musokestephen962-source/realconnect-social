@@ -877,6 +877,17 @@ function saveMyProfile(){
     'realconnectMyProfile',
     JSON.stringify(profile)
   );
+    const myProfileDisplay =
+    document.getElementById('myProfileDisplay');
+
+  if(myProfileDisplay){
+    myProfileDisplay.innerHTML = `
+      <h3>${profile.name}</h3>
+      <p>${profile.location} · ${profile.age}</p>
+      <p><strong>Interests:</strong> ${profile.interests}</p>
+      <p>${profile.bio}</p>
+    `;
+  }
 
   alert('Profile saved successfully!');
 }

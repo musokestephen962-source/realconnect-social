@@ -994,8 +994,20 @@ if(loggedIn === 'true' && loginMessage){
         applyFilters
       );
     }
+const savedProfile =
+  JSON.parse(localStorage.getItem('realconnectMyProfile') || 'null');
 
+const myProfileDisplay =
+  document.getElementById('myProfileDisplay');
 
+if(savedProfile && myProfileDisplay){
+  myProfileDisplay.innerHTML = `
+    <h3>${savedProfile.name}</h3>
+    <p>${savedProfile.location} · ${savedProfile.age}</p>
+    <p><strong>Interests:</strong> ${savedProfile.interests}</p>
+    <p>${savedProfile.bio}</p>
+  `;
+}
     render(profiles);
   }
 );

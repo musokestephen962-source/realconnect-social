@@ -886,7 +886,12 @@ localStorage.setItem('realconnectLoggedIn', 'true');
 document.addEventListener(
   'DOMContentLoaded',
   function(){
+    const loggedIn =
+      localStorage.getItem('realconnectLoggedIn');
 
+    if(loggedIn === 'true'){
+      console.log('User is logged in.');
+    }
     const searchInput =
       document.getElementById('searchInput');
 

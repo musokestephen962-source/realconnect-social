@@ -892,6 +892,12 @@ document.addEventListener(
     if(loggedIn === 'true'){
       console.log('User is logged in.');
     }
+        const loginNav =
+      document.getElementById('loginNav');
+
+    if(loggedIn === 'true' && loginNav){
+      loginNav.textContent = 'Logged In';
+    }
     const searchInput =
       document.getElementById('searchInput');
 

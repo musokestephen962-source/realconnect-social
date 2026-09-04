@@ -914,6 +914,9 @@ document.addEventListener(
     if(loggedIn === 'true' && loginNav){
       loginNav.textContent = 'Logged In';
     }
+    if(loggedIn === 'true'){
+  console.log('Login session active.');
+}
     const searchInput =
       document.getElementById('searchInput');
 

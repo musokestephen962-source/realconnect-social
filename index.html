@@ -883,6 +883,22 @@ function loginUser(){
 localStorage.setItem('realconnectLoggedIn', 'true');
   alert('Demo login successful!');
 }
+  function handleLoginNav(){
+
+  const loggedIn =
+    localStorage.getItem('realconnectLoggedIn');
+
+  if(loggedIn === 'true'){
+    localStorage.removeItem('realconnectLoggedIn');
+    alert('You have been logged out.');
+    location.reload();
+    return;
+  }
+
+  document.getElementById('login').scrollIntoView({
+    behavior:'smooth'
+  });
+}
 document.addEventListener(
   'DOMContentLoaded',
   function(){

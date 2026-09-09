@@ -1119,7 +1119,7 @@ if (earlyAccessForm) {
   earlyAccessForm.addEventListener("submit", function(event) {
     event.preventDefault();
 
-    const name = document.getElementById("<input").value.trim();
+    const name = document.getElementById("earlyAccessName").value.trim();
     const email = document.getElementById("earlyAccessEmail").value.trim();
 
     if (!name || !email) {

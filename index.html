@@ -1075,9 +1075,33 @@ if(savedProfile && myProfileDisplay){
     <p><strong>Interests:</strong> ${savedProfile.interests}</p>
     <p>${savedProfile.bio}</p>
   `;
-}
-    render(profiles);
+  );
+    
+  render(profiles);
   }
 );
+
+/* Early Access signup */
+const earlyAccessForm = document.getElementById("earlyAccessForm");
+const earlyAccessMessage = document.getElementById("earlyAccessMessage");
+
+if (earlyAccessForm) {
+  earlyAccessForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("earlyAccessName").value.trim();
+    const email = document.getElementById("earlyAccessEmail").value.trim();
+
+    if (!name || !email) {
+      earlyAccessMessage.textContent = "Please enter your name and email.";
+      return;
+    }
+
+    earlyAccessMessage.textContent =
+      `Thank you, ${name}! You're on the RealConnect Early Access list.`;
+
+    earlyAccessForm.reset();
+  });
+}
 
 </script>

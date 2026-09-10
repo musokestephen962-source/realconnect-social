@@ -240,36 +240,6 @@
   width:100% !important;
   margin-top:20px !important;
 }
-
-.early-access-form{
-  display:flex !important;
-  flex-direction:column !important;
-  gap:12px !important;
-  max-width:500px !important;
-  margin:20px auto 0 !important;
-}
-
-.early-access-form input{
-  display:block !important;
-  visibility:visible !important;
-  opacity:1 !important;
-  width:100% !important;
-  height:46px !important;
-  box-sizing:border-box !important;
-  padding:12px !important;
-  background:#ffffff !important;
-  color:#000000 !important;
-  border:1px solid #cccccc !important;
-  border-radius:8px !important;
-}
-
-.early-access-form input::placeholder{
-  color:#666666 !important;
-  opacity:1 !important;
-}
-
-.early-access-form button{
-  display:block !important;
 }</style>
 </head>
 <body>
@@ -415,40 +385,14 @@
 </section>
 
   <section id="coming-soon" class="cta">
-  <div class="wrap">
-    <div class="section-head" style="margin-left:auto;margin-right:auto">
-      <h2>RealConnect is coming — and you're invited.</h2>
-      <p>
-        We're building a new way to make genuine connections.
-        Join Early Access and be among the first people to experience RealConnect.
-      </p>
+    <div class="wrap">
+      <div class="section-head" style="margin-left:auto;margin-right:auto">
+        <h2>We're building something real.</h2><p>RealConnect is coming soon. Join the waitlist to be among the first to hear when the platform launches.</p>
+      </div>
+      <div class="buttons"><a class="btn primary" href="mailto:hello@realconnect.social?subject=RealConnect%20Waitlist">Join the Waitlist</a></div>
+      <p style="color:var(--muted);font-size:.85rem;margin-top:14px">The waitlist link is temporary and can be replaced with a signup form when we set one up.</p>
     </div>
-
-    <form id="earlyAccessForm" class="early-access-form">
-      <input
-        type="text"
-        id="earlyAccessName"
-        placeholder="Your name"
-        required
-      >
-
-      <input
-        type="email"
-        id="earlyAccessEmail"
-        placeholder="Your email"
-        required
-      >
-
-      <button type="submit" class="btn primary">
-        Join Early Access
-      </button>
-    </form>
-
-    <p id="earlyAccessMessage"
-       style="color:var(--muted);font-size:.9rem;margin-top:14px">
-    </p>
-  </div>
-</section>
+  </section>
 <section id="search-results" class="search-section">
   <div class="wrap">
     <div class="section-head">
@@ -1106,27 +1050,8 @@ if(savedProfile && myProfileDisplay){
     <p>${savedProfile.bio}</p>
   `;
 }
-/* Early Access signup */
-const earlyAccessForm = document.getElementById("earlyAccessForm");
-const earlyAccessMessage = document.getElementById("earlyAccessMessage");
-
-if (earlyAccessForm) {
-  earlyAccessForm.addEventListener("submit", function(event) {
-    event.preventDefault();
-
-    const name = document.getElementById("earlyAccessName").value.trim();
-    const email = document.getElementById("earlyAccessEmail").value.trim();
-
-    if (!name || !email) {
-      earlyAccessMessage.textContent = "Please enter your name and email.";
-      return;
-    }
-
-    earlyAccessMessage.textContent =
-      `Thank you, ${name}! You're on the RealConnect Early Access list.`;
-
-    earlyAccessForm.reset();
-  });
-}
+    render(profiles);
+  }
+);
 
 </script>

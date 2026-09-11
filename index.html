@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en"
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -389,7 +389,9 @@
       <div class="section-head" style="margin-left:auto;margin-right:auto">
         <h2>We're building something real.</h2><p>RealConnect is coming soon. Join the waitlist to be among the first to hear when the platform launches.</p>
       </div>
-      <div class="buttons"><a class="btn primary" href="mailto:hello@realconnect.social?subject=RealConnect%20Waitlist">Join the Waitlist</a></div>
+      <div class="buttons">
+  <button class="btn primary" onclick="showWaitlistForm()">Join the Waitlist</button>
+</div>
       <p style="color:var(--muted);font-size:.85rem;margin-top:14px">The waitlist link is temporary and can be replaced with a signup form when we set one up.</p>
     </div>
   </section>
@@ -922,7 +924,44 @@ function saveMyProfile(){
 
   alert('Profile saved successfully!');
 }
+function showWaitlistForm(){
 
+  const section = document.getElementById('coming-soon');
+
+  section.innerHTML = `
+    <div class="wrap">
+      <div class="section-head" style="margin-left:auto;margin-right:auto">
+        <h2>Join the RealConnect Waitlist</h2>
+        <p>Enter your name and email to be among the first to hear when RealConnect launches.</p>
+      </div>
+
+      <div style="max-width:500px;margin:20px auto 0">
+        <input type="text" id="waitlistName" placeholder="Your name" style="width:100%;padding:12px;margin-bottom:12px;box-sizing:border-box">
+        <input type="email" id="waitlistEmail" placeholder="Your email" style="width:100%;padding:12px;margin-bottom:12px;box-sizing:border-box">
+        <button class="btn primary" onclick="submitWaitlist()">Join Now</button>
+      </div>
+    </div>
+  `;
+}
+  function submitWaitlist(){
+
+  const name = document.getElementById('waitlistName').value.trim();
+  const email = document.getElementById('waitlistEmail').value.trim();
+
+  if(!name || !email){
+    alert('Please enter your name and email.');
+    return;
+  }
+
+  document.getElementById('coming-soon').innerHTML = `
+    <div class="wrap">
+      <div class="section-head" style="margin-left:auto;margin-right:auto">
+        <h2>You're In!</h2>
+        <p>Thank you, ${name}. You're on the RealConnect waitlist.</p>
+      </div>
+    </div>
+  `;
+}
 function loginUser(){
 
   const email =

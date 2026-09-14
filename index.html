@@ -920,14 +920,39 @@ function saveMyProfile(){
       <p><strong>Interests:</strong> ${profile.interests}</p>
       <p>${profile.bio}</p>
     `;
-  }
 
-  alert('Profile saved successfully!');
-}
 function showWaitlistForm(){
 
   const section = document.getElementById('coming-soon');
 
+  section.innerHTML = `
+    <div class="wrap">
+      <div class="section-head" style="margin-left:auto;margin-right:auto">
+        <h2>Join the RealConnect Waitlist</h2>
+        <p>Enter your name and email to be among the first to hear when RealConnect launches.</p>
+      </div>
+
+      <form action="https://formspree.io/f/xwlkdzoe" method="POST" style="max-width:500px;margin:20px auto 0">
+
+        <input type="text" name="name" placeholder="Your name" required style="width:100%;padding:12px;margin-bottom:12px;box-sizing:border-box">
+
+        <input type="email" name="email" placeholder="Your email" required style="width:100%;padding:12px;margin-bottom:12px;box-sizing:border-box">
+
+        <input type="hidden" name="subject" value="New RealConnect Waitlist Signup">
+
+        <button class="btn primary" type="submit">Join Now</button>
+
+      </form>
+    </div>
+  `;
+}
+  function submitWaitlist(){
+
+  const name = document.getElementById('waitlistName').value.trim();
+  const email = document.getElementById('waitlistEmail').value.trim();
+
+  if(!name || !email){
+    alert('Please enter your name and email.');
   section.innerHTML = `
     <div class="wrap">
       <div class="section-head" style="margin-left:auto;margin-right:auto">

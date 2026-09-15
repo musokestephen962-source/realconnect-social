@@ -762,7 +762,8 @@ function viewProfile(name){
           ×
         </button>
         
-<button
+  <button
+  id="connect-${profile.name.replace(/\s+/g, '-')}"
   class="connect-btn"
   onclick='sendConnectionRequest(${JSON.stringify(profile.name)})'
 >
@@ -851,13 +852,9 @@ function sendConnectionRequest(name){
       .map(connection => `<p>${connection}</p>`)
       .join('');
   }
-
-  const buttons =
-  document.querySelectorAll('.connect-btn');
-
 const button =
-  Array.from(buttons).find(
-    btn => btn.getAttribute('onclick')?.includes(name)
+  document.getElementById(
+    'connect-' + name.replace(/\s+/g, '-')
   );
 
   if(button){

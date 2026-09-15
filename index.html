@@ -762,12 +762,12 @@ function viewProfile(name){
           ×
         </button>
         
-  <button
+<button
   id="connect-${profile.name.replace(/\s+/g, '-')}"
   class="connect-btn"
   onclick='sendConnectionRequest(${JSON.stringify(profile.name)})'
 >
-  Connect
+  ${JSON.parse(localStorage.getItem('realconnectConnections') || '[]').includes(profile.name) ? 'Request Sent ✓' : 'Connect'}
 </button>
 
         <div class="avatar profile-avatar">

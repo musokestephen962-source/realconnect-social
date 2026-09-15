@@ -852,8 +852,13 @@ function sendConnectionRequest(name){
       .join('');
   }
 
-  const button =
-    document.querySelector('.connect-btn');
+  const buttons =
+  document.querySelectorAll('.connect-btn');
+
+const button =
+  Array.from(buttons).find(
+    btn => btn.getAttribute('onclick')?.includes(name)
+  );
 
   if(button){
 

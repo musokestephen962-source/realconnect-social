@@ -832,36 +832,7 @@ function closeProfile(){
   }
 }
 
-function sendConnectionRequest(name){
-
-  const connections =
-    JSON.parse(localStorage.getItem('realconnectConnections') || '[]');
-
-  if(!connections.includes(name)){
-    connections.push(name);
-  }
-
-  localStorage.setItem(
-    'realconnectConnections',
-    JSON.stringify(connections)
-  );
-    const list = document.getElementById('connectionsList');
-
-  if(list){
-    list.innerHTML = connections
-      .map(connection => `<p>${connection}</p>`)
-      .join('');
-  }
-const button =
-  document.getElementById(
-    'connect-' + name.replace(/\s+/g, '-')
-  );
-
-  if(button){
-
-    button.textContent =
-      'Request Sent ✓';
-
+localStorage.setItem
     button.disabled = true;
 
     button.style.opacity = '0.7';
@@ -964,6 +935,7 @@ function loginUser(){
   }
 localStorage.setItem('realconnectLoggedIn', 'true');
   alert('Demo login successful!');
+location.reload();
 }
   function handleLoginNav(){
 

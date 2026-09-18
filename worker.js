@@ -31,7 +31,28 @@ export default {
             }
           );
         }
+        const users = await env.DB
+          .prepare(
+            `SELECT id FROM users
+             WHERE id IN (?, ?)`
+          )
+          .bind(senderId, receiverId)
+          .all();
 
+        if (users.results.length !== 2) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "One or both users do not exist"
+            }),
+            {
+              status: 400,
+              headers: {
+                "content-type": "application/json"
+              }
+            }
+          );
+        }
         const result = await env.DB
           .prepare(
             `INSERT INTO connection_requests

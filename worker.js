@@ -17,7 +17,30 @@ export default {
         }
       );
     }
+    // Temporary connection request test
+    if (url.pathname === "/api/test-connection-request") {
+      const result = await env.DB
+        .prepare(
+          `INSERT INTO connection_requests
+           (sender_id, receiver_id, status)
+           VALUES (?, ?, 'pending')`
+        )
+        .bind(1, 2)
+        .run();
 
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Test connection request created",
+          request_id: result.meta.last_row_id
+        }),
+        {
+          headers: {
+            "content-type": "application/json"
+          }
+        }
+      );
+    }
     // Create a connection request
     if (url.pathname === "/api/connection-request" && request.method === "POST") {
       try {

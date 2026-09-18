@@ -1,17 +1,16 @@
-{
-  "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "realconnect-social",
-  "main": "./worker.js",
-  "compatibility_date": "2026-09-18",
-  "assets": {
-    "directory": "./",
-    "binding": "ASSETS"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "realconnect-db",
-      "database_id": "0f69926b-7999-4d62-8f77-cb5a40aa8813"
-    }
-  ]
-}
+export default {
+  async fetch(request, env) {
+    const result = await env.DB
+      .prepare("SELECT name FROM sqlite_master WHERE type='table'")
+      .all();
+
+    return new Response(
+      JSON.stringify(result),
+      {
+        headers: {
+          "content-type": "application/json"
+        }
+      }
+    );
+  }
+};

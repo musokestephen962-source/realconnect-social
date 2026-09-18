@@ -53,6 +53,31 @@ export default {
             }
           );
         }
+            const existingRequest = await env.DB
+          .prepare(
+            `SELECT id FROM connection_requests
+             WHERE sender_id = ?
+             AND receiver_id = ?
+             AND status = 'pending'
+             LIMIT 1`
+          )
+          .bind(senderId, receiverId)
+          .first();
+
+        if (existingRequest) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "A pending connection request already exists"
+            }),
+            {
+              status: 409,
+              headers: {
+                "content-type": "application/json"
+              }
+            }
+          );
+        }
         const result = await env.DB
           .prepare(
             `INSERT INTO connection_requests

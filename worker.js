@@ -8,53 +8,6 @@ export default {
         .prepare("SELECT name FROM sqlite_master WHERE type='table'")
         .all();
 
-      return new Response(
-        JSON.stringify(result),
-        {
-          headers: {
-            "content-type": "application/json"
-          }
-        }
-      );
-    }
-    // Temporary connection request test
-    if (url.pathname === "/api/test-connection-request") {
-      const result = await env.DB
-        .prepare(
-          `INSERT INTO connection_requests
-           (sender_id, receiver_id, status)
-           VALUES (?, ?, 'pending')`
-        )
-        .bind(1, 2)
-        .run();
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "Test connection request created",
-          request_id: result.meta.last_row_id
-        }),
-        {
-          headers: {
-            "content-type": "application/json"
-          }
-        }
-      );
-    }
-    // Create a connection request
-    if (url.pathname === "/api/connection-request" && request.method === "POST") {
-      try {
-        const body = await request.json();
-
-        const senderId = Number(body.sender_id);
-        const receiverId = Number(body.receiver_id);
-
-        if (!senderId || !receiverId) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: "sender_id and receiver_id are required"
-            }),
             {
               status: 400,
               headers: {

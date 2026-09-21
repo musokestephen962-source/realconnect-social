@@ -163,7 +163,7 @@ export default {
         return new Response(
           JSON.stringify({
             success: false,
-            error: "Registration failed"
+            error: String(error)
           }),
           {
             status: 400,

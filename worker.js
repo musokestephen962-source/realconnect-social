@@ -8,6 +8,30 @@ export default {
         .prepare("SELECT name FROM sqlite_master WHERE type='table'")
         .all();
 
+      return new Response(
+        JSON.stringify(result),
+        {
+          headers: {
+            "content-type": "application/json"
+          }
+        }
+      );
+    }
+
+    // Create a connection request
+    if (url.pathname === "/api/connection-request" && request.method === "POST") {
+      try {
+        const body = await request.json();
+
+        const senderId = Number(body.sender_id);
+        const receiverId = Number(body.receiver_id);
+
+        if (!senderId || !receiverId) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "sender_id and receiver_id are required"
+            }),
             {
               status: 400,
               headers: {
@@ -31,6 +55,7 @@ export default {
             }
           );
         }
+
         const users = await env.DB
           .prepare(
             `SELECT id FROM users
@@ -53,7 +78,8 @@ export default {
             }
           );
         }
-            const existingRequest = await env.DB
+
+        const existingRequest = await env.DB
           .prepare(
             `SELECT id FROM connection_requests
              WHERE sender_id = ?
@@ -78,6 +104,7 @@ export default {
             }
           );
         }
+
         const result = await env.DB
           .prepare(
             `INSERT INTO connection_requests
@@ -104,92 +131,6 @@ export default {
           JSON.stringify({
             success: false,
             error: "Invalid request"
-          }),
-          {
-            status: 400,
-            headers: {
-              "content-type": "application/json"
-            }
-          }
-        );
-      }
-    }
-    // Register a new user
-    if (url.pathname === "/api/register" && request.method === "POST") {
-      try {
-        const body = await request.json();
-
-        const name = String(body.name || "").trim();
-        const email = String(body.email || "").trim().toLowerCase();
-
-        if (!name || !email) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: "Name and email are required"
-            }),
-            {
-              status: 400,
-              headers: {
-                "content-type": "application/json"
-              }
-            }
-          );
-        }
-
-        const existingUser = await env.DB
-          .prepare(
-            `SELECT id, name, email
-             FROM users
-             WHERE email = ?
-             LIMIT 1`
-          )
-          .bind(email)
-          .first();
-
-        if (existingUser) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: "An account with this email already exists",
-              user_id: existingUser.id
-            }),
-            {
-              status: 409,
-              headers: {
-                "content-type": "application/json"
-              }
-            }
-          );
-        }
-
-        const result = await env.DB
-          .prepare(
-            `INSERT INTO users (name, email)
-             VALUES (?, ?)`
-          )
-          .bind(name, email)
-          .run();
-
-        return new Response(
-          JSON.stringify({
-            success: true,
-            user_id: result.meta.last_row_id,
-            name,
-            email
-          }),
-          {
-            headers: {
-              "content-type": "application/json"
-            }
-          }
-        );
-
-      } catch (error) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "Invalid registration request"
           }),
           {
             status: 400,

@@ -122,40 +122,16 @@ const hashBuffer = await crypto.subtle.deriveBits(
   passwordKey,
   256
 );
-        );
 
-        console.log("Registration password import succeeded");
+const bytesToHex = (bytes) =>
+  Array.from(
+    bytes,
+    byte => byte.toString(16).padStart(2, "0")
+  ).join("");
 
-        const hashBuffer = await crypto.subtle.deriveBits(
-        const passwordKey = await crypto.subtle.importKey(
-          "raw",
-          
-          new TextEncoder().encode(password),
-          "PBKDF2",
-          false,
-          ["deriveBits"]
-        );
-
-        const hashBuffer = await crypto.subtle.deriveBits(
-          {
-            name: "PBKDF2",
-            salt: saltBytes,
-            iterations: 310000,
-            hash: "SHA-256"
-          },
-          passwordKey,
-          256
-        );
-
-        const bytesToHex = (bytes) =>
-          Array.from(
-            bytes,
-            byte => byte.toString(16).padStart(2, "0")
-          ).join("");
-
-        const passwordHash = bytesToHex(
-          new Uint8Array(hashBuffer)
-        );
+const passwordHash = bytesToHex(
+  new Uint8Array(hashBuffer)
+);
 
         const passwordSalt = bytesToHex(saltBytes);
 

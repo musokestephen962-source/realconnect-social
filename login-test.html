@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RealConnect Login Test</title>
+</head>
+<body>
+  <h2>RealConnect Login Test</h2>
+
+  <button id="testButton">Test Login</button>
+
+  <pre id="result"></pre>
+
+  <script>
+    document.getElementById("testButton").addEventListener("click", async () => {
+      const result = document.getElementById("result");
+
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: "daniel.test@realconnect.social",
+            password: "YOUR_TEST_PASSWORD"
+          })
+        });
+
+        const text = await response.text();
+
+        result.textContent =
+          "HTTP Status: " + response.status + "\n\n" + text;
+
+      } catch (error) {
+        result.textContent = "Request error: " + error;
+      }
+    });
+  </script>
+</body>
+</html>

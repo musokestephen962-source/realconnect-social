@@ -272,12 +272,39 @@ const passwordHash = bytesToHex(
           );
         }
 
+                const tokenBytes = crypto.getRandomValues(
+          new Uint8Array(32)
+        );
+
+        const token = Array.from(
+          tokenBytes,
+          byte => byte.toString(16).padStart(2, "0")
+        ).join("");
+
+        const expiresAt = new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString();
+
+        await env.DB
+          .prepare(
+            `INSERT INTO sessions
+             (user_id, token, expires_at)
+             VALUES (?, ?, ?)`
+          )
+          .bind(
+            user.id,
+            token,
+            expiresAt
+          )
+          .run();
+
         return new Response(
           JSON.stringify({
             success: true,
             user_id: user.id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            token
           }),
           {
             headers: {

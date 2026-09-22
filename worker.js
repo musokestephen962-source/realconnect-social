@@ -1,7 +1,37 @@
+async function getAuthenticatedUser(request, env) {
+  const authHeader = request.headers.get("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = authHeader.slice(7).trim();
+
+  if (!token) {
+    return null;
+  }
+
+  const session = await env.DB
+    .prepare(
+      `SELECT users.id, users.name, users.email
+       FROM sessions
+       JOIN users ON users.id = sessions.user_id
+       WHERE sessions.token = ?
+         AND sessions.expires_at > ?
+       LIMIT 1`
+    )
+    .bind(
+      token,
+      new Date().toISOString()
+    )
+    .first();
+
+  return session || null;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
     // Test D1 connection
     if (url.pathname === "/api/test-db") {
       const result = await env.DB

@@ -14,13 +14,12 @@
       const result = document.getElementById("result");
 
       try {
-        const response = await fetch("/api/register", {
+        const response = await fetch("/api/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
         body: JSON.stringify({
-  name: "Login Test",
   email: "login-test@realconnect.social",
   password: "Kammengo3!"
 })

@@ -32,6 +32,39 @@ async function getAuthenticatedUser(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // Temporary session authentication test
+if (url.pathname === "/api/test-session") {
+  const user = await getAuthenticatedUser(request, env);
+
+  if (!user) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Not authenticated"
+      }),
+      {
+        status: 401,
+        headers: {
+          "content-type": "application/json"
+        }
+      }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      user_id: user.id,
+      name: user.name,
+      email: user.email
+    }),
+    {
+      headers: {
+        "content-type": "application/json"
+      }
+    }
+  );
+}
     // Test D1 connection
     if (url.pathname === "/api/test-db") {
       const result = await env.DB

@@ -397,14 +397,31 @@ const passwordHash = bytesToHex(
       try {
         const body = await request.json();
 
-        const senderId = Number(body.sender_id);
-        const receiverId = Number(body.receiver_id);
+const user = await getAuthenticatedUser(request, env);
+
+if (!user) {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: "Not authenticated"
+    }),
+    {
+      status: 401,
+      headers: {
+        "content-type": "application/json"
+      }
+    }
+  );
+}
+
+const senderId = user.id;
+const receiverId = Number(body.receiver_id);
 
         if (!senderId || !receiverId) {
           return new Response(
             JSON.stringify({
               success: false,
-              error: "sender_id and receiver_id are required"
+              error: "receiver_id is required"
             }),
             {
               status: 400,

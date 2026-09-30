@@ -1014,28 +1014,79 @@ function showWaitlistForm(){
     </div>
   `;
 }
-function loginUser(){
+async function loginUser(){
 
   const email =
     document.querySelector('#loginForm input[type="email"]').value.trim();
 
   const password =
-    document.querySelector('#loginForm input[type="password"]').value.trim();
+    document.querySelector('#loginForm input[type="password"]').value;
+
+  const loginMessage =
+    document.getElementById('loginMessage');
 
   if(!email || !password){
-    alert('Please enter your email and password.');
+    loginMessage.textContent =
+      'Please enter your email and password.';
     return;
   }
-localStorage.setItem('realconnectLoggedIn', 'true');
-  alert('Demo login successful!');
+
+  loginMessage.textContent = 'Logging in...';
+
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      loginMessage.textContent =
+        data.error || 'Unable to log in.';
+      return;
+    }
+
+    localStorage.setItem('realconnectToken', data.token);
+    localStorage.setItem('realconnectUser', JSON.stringify({
+      id: data.user_id,
+      name: data.name,
+      email: data.email
+    }));
+
+    loginMessage.textContent =
+      `Welcome back, ${data.name}.`;
+
+    document.querySelector(
+      '#loginForm input[type="password"]'
+    ).value = '';
+
+            const loginNav =
+      document.getElementById('loginNav');
+
+    if(loginNav){
+      loginNav.textContent = 'Log Out';
+    }
+
+  } catch(error) {
+    loginMessage.textContent =
+      'Unable to connect. Please try again.';
+  }
 }
   function handleLoginNav(){
 
-  const loggedIn =
-    localStorage.getItem('realconnectLoggedIn');
+  const token =
+    localStorage.getItem('realconnectToken');
 
-  if(loggedIn === 'true'){
-    localStorage.removeItem('realconnectLoggedIn');
+  if(token){
+    localStorage.removeItem('realconnectToken');
+    localStorage.removeItem('realconnectUser');
     alert('You have been logged out.');
     location.reload();
     return;

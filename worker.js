@@ -393,6 +393,111 @@ const passwordHash = bytesToHex(
     }
 
     // Create a connection request
+        // Create or update the authenticated user's profile
+    if (url.pathname === "/api/profile" && request.method === "POST") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Not authenticated"
+            }),
+            {
+              status: 401,
+              headers: {
+                "content-type": "application/json"
+              }
+            }
+          );
+        }
+
+        const body = await request.json();
+
+        const location = String(body.location || "").trim();
+        const age = Number(body.age);
+        const interests = String(body.interests || "").trim();
+        const bio = String(body.bio || "").trim();
+
+        if (!location || !Number.isInteger(age) || age < 18 || age > 120) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Location and a valid age are required"
+            }),
+            {
+              status: 400,
+              headers: {
+                "content-type": "application/json"
+              }
+            }
+          );
+        }
+
+        const existing = await env.DB
+          .prepare("SELECT id FROM profiles WHERE user_id = ? LIMIT 1")
+          .bind(user.id)
+          .first();
+
+        if (existing) {
+          await env.DB
+            .prepare(
+              `UPDATE profiles
+               SET location = ?, age = ?, interests = ?, bio = ?
+               WHERE user_id = ?`
+            )
+            .bind(
+              location,
+              age,
+              interests,
+              bio,
+              user.id
+            )
+            .run();
+        } else {
+          await env.DB
+            .prepare(
+              `INSERT INTO profiles
+               (user_id, location, age, interests, bio)
+               VALUES (?, ?, ?, ?, ?)`
+            )
+            .bind(
+              user.id,
+              location,
+              age,
+              interests,
+              bio
+            )
+            .run();
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Profile saved"
+          }),
+          {
+            headers: {
+              "content-type": "application/json"
+            }
+          }
+        );
+      } catch (error) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Unable to save profile"
+          }),
+          {
+            status: 500,
+            headers: {
+              "content-type": "application/json"
+            }
+          }
+        );
+      }
+    }
     if (url.pathname === "/api/connection-request" && request.method === "POST") {
       try {
         const body = await request.json();

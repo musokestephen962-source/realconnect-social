@@ -957,35 +957,102 @@ function editMyProfile(){
   document.getElementById('create-profile').scrollIntoView({
     behavior:'smooth'
   });
-}function saveMyProfile(){
+}async function saveMyProfile(){
+
+  const token =
+    localStorage.getItem('realconnectToken');
+
+  if(!token){
+    alert('Please log in before creating your profile.');
+    return;
+  }
+
   const fields =
     document.querySelectorAll(
       '#profileForm input, #profileForm textarea'
     );
 
-  const profile = {
-    name: fields[0].value.trim(),
-    location: fields[1].value.trim(),
-    age: fields[2].value.trim(),
-    interests: fields[3].value.trim(),
-    bio: fields[4].value.trim()
-  };
+  const savedUser =
+    JSON.parse(
+      localStorage.getItem('realconnectUser') || 'null'
+    );
 
-  localStorage.setItem(
-    'realconnectMyProfile',
-    JSON.stringify(profile)
-  );
+  const name =
+    savedUser?.name || fields[0].value.trim();
 
-  const myProfileDisplay =
-    document.getElementById('myProfileDisplay');
+  const location =
+    fields[1].value.trim();
 
-  if(myProfileDisplay){
-    myProfileDisplay.innerHTML = `
-      <h3>${profile.name}</h3>
-      <p>${profile.location} · ${profile.age}</p>
-      <p><strong>Interests:</strong> ${profile.interests}</p>
-      <p>${profile.bio}</p>
-    `;
+  const age =
+    Number(fields[2].value.trim());
+
+  const interests =
+    fields[3].value.trim();
+
+  const bio =
+    fields[4].value.trim();
+
+  if(!name || !location || !Number.isInteger(age) || age < 18 || age > 120){
+    alert('Please enter your name, location, and a valid age between 18 and 120.');
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch('/api/profile', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          location,
+          age,
+          interests,
+          bio
+        })
+      });
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.success){
+      alert(data.error || 'Unable to save your profile.');
+      return;
+    }
+
+    const profile = {
+      name,
+      location,
+      age,
+      interests,
+      bio
+    };
+
+    localStorage.setItem(
+      'realconnectMyProfile',
+      JSON.stringify(profile)
+    );
+
+    const myProfileDisplay =
+      document.getElementById('myProfileDisplay');
+
+    if(myProfileDisplay){
+      myProfileDisplay.innerHTML = `
+        <h3>${profile.name}</h3>
+        <p>${profile.location} · ${profile.age}</p>
+        <p><strong>Interests:</strong> ${profile.interests}</p>
+        <p>${profile.bio}</p>
+      `;
+    }
+
+    alert('Profile saved successfully.');
+
+  } catch(error) {
+
+    alert('Unable to connect. Please try again.');
+
   }
 }
 

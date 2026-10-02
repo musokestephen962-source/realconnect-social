@@ -569,39 +569,34 @@
   </div>
 </section>
 <script> 
-const profiles=[
-{name:'Maya',location:'Toronto, Ontario, Canada',age:'30s',type:'Friendship & Community',interests:['Travel','Food','Music'],bio:'Enjoys discovering new places, good conversation and meeting genuine people.'},
-{name:'Daniel',location:'Mississauga, Ontario, Canada',age:'40s',type:'Meaningful Relationship',interests:['Fitness','Travel','Cooking'],bio:'Family-oriented and active, looking for a genuine connection built on trust.'},
-{name:'Aisha',location:'North York, Ontario, Canada',age:'30s',type:'Friendship',interests:['Art','Books','Coffee'],bio:'Creative, curious and always open to meeting interesting people.'},
-{name:'Marcus',location:'Brampton, Ontario, Canada',age:'40s',type:'Companionship',interests:['Sports','Travel','Business'],bio:'Positive and outgoing, interested in meaningful companionship and shared experiences.'},
-{name:'Sarah',location:'Toronto, Ontario, Canada',age:'50s',type:'Friendship & Companionship',interests:['Wellness','Cooking','Travel'],bio:'Warm, social and interested in building authentic friendships.'},
-{name:'James',location:'Vaughan, Ontario, Canada',age:'30s',type:'Meaningful Relationship',interests:['Technology','Music','Fitness'],bio:'Easygoing and ambitious, looking for someone genuine with shared interests.'},
-{name:'Grace',location:'Scarborough, Ontario, Canada',age:'30s',type:'Friendship',interests:['Travel','Fashion','Food'],bio:'Social and adventurous, interested in meeting genuine people and discovering new experiences.'},
-{name:'Michael',location:'Etobicoke, Ontario, Canada',age:'40s',type:'Companionship',interests:['Sports','Music','Travel'],bio:'Outgoing and easygoing, enjoys good conversations and shared experiences.'},
-{name:'Nadia',location:'Toronto, Ontario, Canada',age:'40s',type:'Meaningful Relationship',interests:['Cooking','Books','Travel'],bio:'Warm-hearted and family-oriented, looking for a genuine and respectful connection.'},
-{name:'Kevin',location:'Richmond Hill, Ontario, Canada',age:'30s',type:'Friendship & Community',interests:['Technology','Fitness','Business'],bio:'Ambitious and friendly, enjoys networking and connecting with positive people.'},
-{name:'Linda',location:'Markham, Ontario, Canada',age:'50s',type:'Friendship & Companionship',interests:['Wellness','Travel','Cooking'],bio:'Enjoys an active lifestyle, travel and meaningful conversations.'},
-{name:'Robert',location:'Pickering, Ontario, Canada',age:'40s',type:'Meaningful Relationship',interests:['Fitness','Music','Food'],bio:'Positive, respectful and interested in building something genuine.'},
-{name:'Sophia',location:'Ajax, Ontario, Canada',age:'30s',type:'Friendship',interests:['Art','Travel','Coffee'],bio:'Creative and curious, looking to meet interesting people with similar interests.'},
-{name:'Anthony',location:'Oakville, Ontario, Canada',age:'50s',type:'Companionship',interests:['Golf','Travel','Business'],bio:'Enjoys staying active, travelling and sharing good experiences with others.'},
-{name:'Emily',location:'Toronto, Ontario, Canada',age:'20s',type:'Friendship & Community',interests:['Music','Art','Food'],bio:'Energetic and creative, interested in meeting new people and building friendships.'},
-{name:'Christopher',location:'North York, Ontario, Canada',age:'40s',type:'Meaningful Relationship',interests:['Cooking','Fitness','Travel'],bio:'Calm, active and genuine, hoping to meet someone with shared values.'},
-{name:'Jessica',location:'Mississauga, Ontario, Canada',age:'30s',type:'Friendship & Companionship',interests:['Wellness','Books','Travel'],bio:'Friendly and positive, enjoys exploring the city and meeting authentic people.'},
+let profiles = [];
 
-{name:'Olivia',location:'New York, USA',age:'30s',type:'Friendship & Community',interests:['Travel','Music','Food'],bio:'Outgoing and curious, enjoys meeting people from different backgrounds and exploring the city.'},
-{name:'Ethan',location:'Chicago, USA',age:'40s',type:'Companionship',interests:['Sports','Business','Travel'],bio:'Friendly and active, enjoys meaningful conversations and discovering new experiences.'},
-{name:'Sophia',location:'Los Angeles, USA',age:'30s',type:'Friendship',interests:['Art','Fashion','Music'],bio:'Creative and social, interested in meeting genuine people with shared interests.'},
-{name:'Noah',location:'London, UK',age:'40s',type:'Meaningful Relationship',interests:['Books','Travel','Cooking'],bio:'Calm and thoughtful, looking for a genuine connection based on shared values.'},
-{name:'Amelia',location:'Manchester, UK',age:'30s',type:'Friendship & Companionship',interests:['Music','Fitness','Coffee'],bio:'Warm and friendly, enjoys good conversations and meeting new people.'},
-{name:'David',location:'Kampala, Uganda',age:'40s',type:'Friendship & Community',interests:['Business','Travel','Music'],bio:'Positive and community-minded, enjoys connecting with people and sharing experiences.'},
-{name:'Sarah',location:'Entebbe, Uganda',age:'30s',type:'Friendship',interests:['Travel','Food','Art'],bio:'Adventurous and welcoming, enjoys meeting interesting people and discovering new places.'},
-{name:'Brian',location:'Nairobi, Kenya',age:'30s',type:'Meaningful Relationship',interests:['Technology','Fitness','Travel'],bio:'Ambitious and active, looking for a genuine connection with someone who shares similar interests.'},
-{name:'Thandi',location:'Johannesburg, South Africa',age:'40s',type:'Companionship',interests:['Wellness','Music','Food'],bio:'Warm-hearted and social, enjoys meaningful conversations and shared experiences.'},
-{name:'Lerato',location:'Cape Town, South Africa',age:'30s',type:'Friendship & Community',interests:['Travel','Art','Coffee'],bio:'Creative and adventurous, interested in authentic friendships and new experiences.'},
-{name:'Omar',location:'Dubai, UAE',age:'40s',type:'Meaningful Relationship',interests:['Business','Travel','Fitness'],bio:'Professional and outgoing, interested in building a genuine connection based on mutual respect.'},
-{name:'Emma',location:'Sydney, Australia',age:'30s',type:'Friendship',interests:['Travel','Fitness','Food'],bio:'Active and friendly, enjoys meeting people and exploring new places.'},
-{name:'Lucas',location:'Melbourne, Australia',age:'40s',type:'Friendship & Companionship',interests:['Music','Sports','Coffee'],bio:'Easygoing and positive, enjoys good conversation and shared interests.'}
-];
+async function loadProfiles(){
+  try {
+    const response = await fetch('/api/profiles');
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      console.error(data.error || 'Unable to load profiles');
+      render([]);
+      return;
+    }
+
+    profiles = data.profiles.map(p => ({
+      ...p,
+      type: 'Friendship & Community',
+      interests: p.interests
+        ? p.interests.split(',').map(i => i.trim()).filter(Boolean)
+        : []
+    }));
+
+    render(profiles);
+
+  } catch(error) {
+    console.error('Unable to load profiles:', error);
+    render([]);
+  }
+}
 function card(p){
   return `
     <article class="profile-card">
@@ -1259,7 +1254,7 @@ if(savedProfile && myProfileDisplay){
     <p>${savedProfile.bio}</p>
   `;
 }
-    render(profiles);
+  loadProfiles();
   }
 );
 

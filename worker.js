@@ -32,39 +32,41 @@ async function getAuthenticatedUser(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
     // Temporary session authentication test
-if (url.pathname === "/api/test-session") {
-  const user = await getAuthenticatedUser(request, env);
+    if (url.pathname === "/api/test-session") {
+      const user = await getAuthenticatedUser(request, env);
 
-  if (!user) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Not authenticated"
-      }),
-      {
-        status: 401,
-        headers: {
-          "content-type": "application/json"
+      if (!user) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Not authenticated"
+          }),
+          {
+            status: 401,
+            headers: {
+              "content-type": "application/json"
+            }
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          user_id: user.id,
+          name: user.name,
+          email: user.email
+        }),
+        {
+          headers: {
+            "content-type": "application/json"
+          }
         }
-      }
-    );
-  }
-
-  return new Response(
-    JSON.stringify({
-      success: true,
-      user_id: user.id,
-      name: user.name,
-      email: user.email
-    }),
-    {
-      headers: {
-        "content-type": "application/json"
-      }
+      );
     }
-  );
-}
+
     // Test D1 connection
     if (url.pathname === "/api/test-db") {
       const result = await env.DB
@@ -80,6 +82,7 @@ if (url.pathname === "/api/test-session") {
         }
       );
     }
+
     // Register a new user
     if (url.pathname === "/api/register" && request.method === "POST") {
       try {
@@ -160,41 +163,41 @@ if (url.pathname === "/api/test-session") {
         }
 
         const saltBytes = crypto.getRandomValues(
-  new Uint8Array(16)
-);
+          new Uint8Array(16)
+        );
 
-console.log("Registration reached password import");
+        console.log("Registration reached password import");
 
-const passwordKey = await crypto.subtle.importKey(
-  "raw",
-  new TextEncoder().encode(password),
-  "PBKDF2",
-  false,
-  ["deriveBits"]
-);
+        const passwordKey = await crypto.subtle.importKey(
+          "raw",
+          new TextEncoder().encode(password),
+          "PBKDF2",
+          false,
+          ["deriveBits"]
+        );
 
-console.log("Registration password import succeeded");
+        console.log("Registration password import succeeded");
 
-const hashBuffer = await crypto.subtle.deriveBits(
-  {
-    name: "PBKDF2",
-    salt: saltBytes,
-    iterations: 100000,
-    hash: "SHA-256"
-  },
-  passwordKey,
-  256
-);
+        const hashBuffer = await crypto.subtle.deriveBits(
+          {
+            name: "PBKDF2",
+            salt: saltBytes,
+            iterations: 100000,
+            hash: "SHA-256"
+          },
+          passwordKey,
+          256
+        );
 
-const bytesToHex = (bytes) =>
-  Array.from(
-    bytes,
-    byte => byte.toString(16).padStart(2, "0")
-  ).join("");
+        const bytesToHex = (bytes) =>
+          Array.from(
+            bytes,
+            byte => byte.toString(16).padStart(2, "0")
+          ).join("");
 
-const passwordHash = bytesToHex(
-  new Uint8Array(hashBuffer)
-);
+        const passwordHash = bytesToHex(
+          new Uint8Array(hashBuffer)
+        );
 
         const passwordSalt = bytesToHex(saltBytes);
 
@@ -241,6 +244,7 @@ const passwordHash = bytesToHex(
         );
       }
     }
+
     // Login an existing user
     if (url.pathname === "/api/login" && request.method === "POST") {
       try {
@@ -291,7 +295,9 @@ const passwordHash = bytesToHex(
 
         const hexToBytes = (hex) =>
           new Uint8Array(
-            hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))
+            hex.match(/.{1,2}/g).map(
+              byte => parseInt(byte, 16)
+            )
           );
 
         const saltBytes = hexToBytes(user.password_salt);
@@ -335,7 +341,7 @@ const passwordHash = bytesToHex(
           );
         }
 
-                const tokenBytes = crypto.getRandomValues(
+        const tokenBytes = crypto.getRandomValues(
           new Uint8Array(32)
         );
 
@@ -392,8 +398,7 @@ const passwordHash = bytesToHex(
       }
     }
 
-    // Create a connection request
-        // Create or update the authenticated user's profile
+    // Create or update the authenticated user's profile
     if (url.pathname === "/api/profile" && request.method === "POST") {
       try {
         const user = await getAuthenticatedUser(request, env);
@@ -420,7 +425,12 @@ const passwordHash = bytesToHex(
         const interests = String(body.interests || "").trim();
         const bio = String(body.bio || "").trim();
 
-        if (!location || !Number.isInteger(age) || age < 18 || age > 120) {
+        if (
+          !location ||
+          !Number.isInteger(age) ||
+          age < 18 ||
+          age > 120
+        ) {
           return new Response(
             JSON.stringify({
               success: false,
@@ -436,7 +446,9 @@ const passwordHash = bytesToHex(
         }
 
         const existing = await env.DB
-          .prepare("SELECT id FROM profiles WHERE user_id = ? LIMIT 1")
+          .prepare(
+            "SELECT id FROM profiles WHERE user_id = ? LIMIT 1"
+          )
           .bind(user.id)
           .first();
 
@@ -483,6 +495,7 @@ const passwordHash = bytesToHex(
             }
           }
         );
+
       } catch (error) {
         return new Response(
           JSON.stringify({
@@ -498,29 +511,31 @@ const passwordHash = bytesToHex(
         );
       }
     }
+
+    // Send a connection request
     if (url.pathname === "/api/connection-request" && request.method === "POST") {
       try {
         const body = await request.json();
 
-const user = await getAuthenticatedUser(request, env);
+        const user = await getAuthenticatedUser(request, env);
 
-if (!user) {
-  return new Response(
-    JSON.stringify({
-      success: false,
-      error: "Not authenticated"
-    }),
-    {
-      status: 401,
-      headers: {
-        "content-type": "application/json"
-      }
-    }
-  );
-}
+        if (!user) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Not authenticated"
+            }),
+            {
+              status: 401,
+              headers: {
+                "content-type": "application/json"
+              }
+            }
+          );
+        }
 
-const senderId = user.id;
-const receiverId = Number(body.receiver_id);
+        const senderId = user.id;
+        const receiverId = Number(body.receiver_id);
 
         if (!senderId || !receiverId) {
           return new Response(
@@ -630,6 +645,54 @@ const receiverId = Number(body.receiver_id);
           }),
           {
             status: 400,
+            headers: {
+              "content-type": "application/json"
+            }
+          }
+        );
+      }
+    }
+
+    // Get profiles for Discover
+    if (url.pathname === "/api/profiles" && request.method === "GET") {
+      try {
+        const result = await env.DB
+          .prepare(
+            `SELECT
+              profiles.id,
+              profiles.user_id,
+              users.name,
+              profiles.location,
+              profiles.age,
+              profiles.interests,
+              profiles.bio
+             FROM profiles
+             JOIN users
+               ON users.id = profiles.user_id
+             ORDER BY profiles.id DESC`
+          )
+          .all();
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            profiles: result.results
+          }),
+          {
+            headers: {
+              "content-type": "application/json"
+            }
+          }
+        );
+
+      } catch (error) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Unable to load profiles"
+          }),
+          {
+            status: 500,
             headers: {
               "content-type": "application/json"
             }

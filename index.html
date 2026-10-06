@@ -1071,6 +1071,7 @@ function showWaitlistForm(){
     </div>
   `;
 }
+
 async function loginUser(){
 
   const email =
@@ -1091,6 +1092,7 @@ async function loginUser(){
   loginMessage.textContent = 'Logging in...';
 
   try {
+
     const response = await fetch('/api/login', {
       method: 'POST',
       headers: {
@@ -1110,21 +1112,24 @@ async function loginUser(){
       return;
     }
 
-    localStorage.setItem('realconnectToken', data.token);
-    localStorage.setItem('realconnectUser', JSON.stringify({
-      id: data.user_id,
-      name: data.name,
-      email: data.email
-    }));
+    localStorage.setItem(
+      'realconnectToken',
+      data.token
+    );
+
+    localStorage.setItem(
+      'realconnectUser',
+      JSON.stringify({
+        id: data.user_id,
+        name: data.name,
+        email: data.email
+      })
+    );
 
     loginMessage.textContent =
-      `Welcome back, ${data.name}.`;
+      'Login successful.';
 
-    document.querySelector(
-      '#loginForm input[type="password"]'
-    ).value = '';
-
-            const loginNav =
+    const loginNav =
       document.getElementById('loginNav');
 
     if(loginNav){
@@ -1132,20 +1137,27 @@ async function loginUser(){
     }
 
   } catch(error) {
+
     loginMessage.textContent =
       'Unable to connect. Please try again.';
+
   }
 }
-  function handleLoginNav(){
+
+function handleLoginNav(){
 
   const token =
     localStorage.getItem('realconnectToken');
 
   if(token){
+
     localStorage.removeItem('realconnectToken');
     localStorage.removeItem('realconnectUser');
+
     alert('You have been logged out.');
+
     location.reload();
+
     return;
   }
 
@@ -1153,19 +1165,20 @@ async function loginUser(){
     behavior:'smooth'
   });
 }
+
 document.addEventListener(
   'DOMContentLoaded',
   function(){
     const loggedIn =
-      localStorage.getItem('realconnectLoggedIn');
+  localStorage.getItem('realconnectToken');
 
-    if(loggedIn === 'true'){
+  if(loggedIn){
       console.log('User is logged in.');
     }
         const loginNav =
       document.getElementById('loginNav');
 
-    if(loggedIn === 'true' && loginNav){
+    if(loggedIn && loginNav){
       loginNav.textContent = 'Log Out';
     }
     const loginMessage =

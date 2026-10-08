@@ -573,9 +573,66 @@
       <input id="registerPassword" type="password" placeholder="Password">
       <button class="btn primary" onclick="registerUser()">Register</button>
       <p id="registerMessage"></p>
+    </div>
+</section>
+
+<section id="membership" class="search-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Membership</div>
+      <h2>Choose the connection that fits you.</h2>
+      <p>Start free and upgrade when you want more from RealConnect.</p>
+    </div>
+
+    <div class="membership-grid">
+
+      <div class="membership-card">
+        <h3>Free</h3>
+        <div class="membership-price">$0</div>
+        <p>Get started with the essentials.</p>
+        <ul>
+          <li>Create your profile</li>
+          <li>Discover members</li>
+          <li>Search and filter profiles</li>
+          <li>Send and receive connections</li>
+          <li>Manage your profile</li>
+        </ul>
+        <button class="btn primary">Current Plan</button>
+      </div>
+
+      <div class="membership-card">
+        <h3>Gold</h3>
+        <div class="membership-price">$9.99<span>/month</span></div>
+        <p>More opportunities to connect.</p>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Unlimited connection requests</li>
+          <li>Advanced search</li>
+          <li>Priority visibility</li>
+          <li>Gold membership badge</li>
+        </ul>
+        <button class="btn primary">Choose Gold</button>
+      </div>
+
+      <div class="membership-card">
+        <h3>Platinum</h3>
+        <div class="membership-price">$19.99<span>/month</span></div>
+        <p>Maximum visibility and access.</p>
+        <ul>
+          <li>Everything in Gold</li>
+          <li>Maximum profile visibility</li>
+          <li>Priority placement</li>
+          <li>Advanced filters</li>
+          <li>Platinum membership badge</li>
+        </ul>
+        <button class="btn primary">Choose Platinum</button>
+      </div>
+
+    </div>
   </div>
 </section>
-<script> 
+
+<script>
 let profiles = [];
 
 async function loadProfiles(){

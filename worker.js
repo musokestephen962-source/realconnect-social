@@ -270,7 +270,7 @@ export default {
 
         const user = await env.DB
           .prepare(
-            `SELECT id, name, email, password_hash, password_salt
+            `SELECT id, name, email, password_hash, password_salt, membership
              FROM users
              WHERE email = ?
              LIMIT 1`
@@ -373,7 +373,8 @@ export default {
             user_id: user.id,
             name: user.name,
             email: user.email,
-            token
+membership: user.membership,
+token
           }),
           {
             headers: {

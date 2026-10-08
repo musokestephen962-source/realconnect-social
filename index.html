@@ -1114,7 +1114,7 @@ async function loginUser(){
     const data = await response.json();
 
     if(!response.ok || !data.success){
-      loginMessage.textContent =
+        loginMessage.textContent =
         data.error || 'Unable to log in.';
       return;
     }
@@ -1135,7 +1135,7 @@ async function loginUser(){
     );
 
     loginMessage.textContent =
-      'Login successful.';
+  `Login successful. Membership: ${data.membership}`;
 
     const loginNav =
       document.getElementById('loginNav');

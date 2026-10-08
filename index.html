@@ -558,7 +558,7 @@
     <div class="section-head">
       <div class="eyebrow">Log In</div>
       <h2>Welcome back.</h2>
-      <p id="loginMessage">Log in to continue to your RealConnect profile.</p>
+      <p id="loginMessage">Already have an account? Log in below. New to RealConnect? Register.</p>
     </div>
 
     <div id="loginForm">
@@ -566,6 +566,13 @@
       <input type="password" placeholder="Password">
       <button class="btn primary" onclick="loginUser()">Log In</button>
     </div>
+        <div id="registerForm" style="margin-top:20px;">
+      <h3>Register</h3>
+      <input id="registerName" type="text" placeholder="Your name">
+      <input id="registerEmail" type="email" placeholder="Email address">
+      <input id="registerPassword" type="password" placeholder="Password">
+      <button class="btn primary" onclick="registerUser()">Register</button>
+      <p id="registerMessage"></p>
   </div>
 </section>
 <script> 
@@ -1262,8 +1269,69 @@ if(savedProfile && myProfileDisplay){
     <p>${savedProfile.bio}</p>
   `;
 }
-  loadProfiles();
+    loadProfiles();
   }
 );
+
+async function registerUser(){
+
+  const name =
+    document.getElementById('registerName').value.trim();
+
+  const email =
+    document.getElementById('registerEmail').value.trim();
+
+  const password =
+    document.getElementById('registerPassword').value;
+
+  const registerMessage =
+    document.getElementById('registerMessage');
+
+  if(!name || !email || !password){
+    registerMessage.textContent =
+      'Please enter your name, email and password.';
+    return;
+  }
+
+  registerMessage.textContent =
+    'Creating your account...';
+
+  try{
+
+    const response =
+      await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password
+        })
+      });
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.success){
+      registerMessage.textContent =
+        data.error || 'Registration failed.';
+      return;
+    }
+
+    registerMessage.textContent =
+      'Registration successful. You can now log in.';
+
+    document.getElementById('registerPassword').value = '';
+
+  }catch(error){
+
+    console.error('Registration error:', error);
+
+    registerMessage.textContent =
+      'Something went wrong. Please try again.';
+  }
+}
 
 </script>

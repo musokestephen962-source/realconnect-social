@@ -1127,10 +1127,11 @@ async function loginUser(){
     localStorage.setItem(
       'realconnectUser',
       JSON.stringify({
-        id: data.user_id,
-        name: data.name,
-        email: data.email
-      })
+  id: data.user_id,
+  name: data.name,
+  email: data.email,
+  membership: data.membership
+})
     );
 
     loginMessage.textContent =

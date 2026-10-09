@@ -950,41 +950,71 @@ function closeProfile(){
   }
 }
 
-function sendConnectionRequest(name){
+async function sendConnectionRequest(name){
 
-  const connections =
-    JSON.parse(localStorage.getItem('realconnectConnections') || '[]');
+  const profile = profiles.find(p => p.name === name);
 
-  if(!connections.includes(name)){
-    connections.push(name);
+  if(!profile || !profile.user_id){
+    alert('This profile cannot receive connection requests yet.');
+    return;
   }
 
-  localStorage.setItem(
-    'realconnectConnections',
-    JSON.stringify(connections)
-  );
-    const list = document.getElementById('connectionsList');
+  const token = localStorage.getItem('realconnectToken');
 
-  if(list){
-    list.innerHTML = connections
-      .map(connection => `<p>${connection}</p>`)
-      .join('');
+  if(!token){
+    alert('Please log in before sending a connection request.');
+    return;
   }
-const button =
-  document.getElementById(
+
+  const button = document.getElementById(
     'connect-' + name.replace(/\s+/g, '-')
   );
 
   if(button){
-
-    button.textContent =
-      'Request Sent ✓';
-
     button.disabled = true;
+    button.textContent = 'Sending...';
+  }
 
-    button.style.opacity = '0.7';
+  try {
+    const response = await fetch('/api/connection-request', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        receiver_id: Number(profile.user_id)
+      })
+    });
 
-        button.style.cursor = 'default';
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      if(response.status === 409){
+        alert('A connection request is already pending.');
+      } else {
+        alert(data.error || 'Unable to send the request.');
+      }
+
+      if(button){
+        button.disabled = false;
+        button.textContent = 'Connect';
+      }
+      return;
+    }
+
+    if(button){
+      button.textContent = 'Request Sent ✓';
+    }
+
+  } catch(error) {
+    console.error('Connection request failed:', error);
+    alert('Could not send the request. Please try again.');
+
+    if(button){
+      button.disabled = false;
+      button.textContent = 'Connect';
+    }
   }
 }
 function editMyProfile(){

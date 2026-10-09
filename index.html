@@ -1422,4 +1422,115 @@ async function registerUser(){
   }
 }
 
+async function loadIncomingRequests() {
+  const message = document.getElementById('incomingRequestsMessage');
+  const list = document.getElementById('incomingRequestsList');
+  const token = localStorage.getItem('realconnectToken');
+
+  list.replaceChildren();
+
+  if (!token) {
+    message.textContent = 'Please log in to view incoming requests.';
+    return;
+  }
+
+  message.textContent = 'Loading requests...';
+
+  try {
+    const response = await fetch('/api/connection-requests', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      message.textContent = data.error || 'Unable to load requests.';
+      return;
+    }
+
+    if (!data.requests.length) {
+      message.textContent = 'You have no pending connection requests.';
+      return;
+    }
+
+    message.textContent = `${data.requests.length} pending request(s).`;
+
+    data.requests.forEach(request => {
+      const card = document.createElement('div');
+      card.style.cssText = 'border:1px solid #ddd; border-radius:10px; padding:16px; margin:12px 0;';
+
+      const name = document.createElement('h3');
+      name.textContent = request.sender_name || 'RealConnect member';
+      card.appendChild(name);
+
+      const details = document.createElement('p');
+      details.textContent = [
+        request.age ? `Age: ${request.age}` : '',
+        request.location || '',
+        request.interests || '',
+        request.bio || ''
+      ].filter(Boolean).join(' · ');
+      card.appendChild(details);
+
+      ['accept', 'decline'].forEach(action => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = action === 'accept' ? 'Accept' : 'Decline';
+        button.style.marginRight = '10px';
+
+        button.addEventListener('click', async () => {
+          button.disabled = true;
+          message.textContent = `Processing ${action}...`;
+
+          try {
+            const result = await fetch('/api/connection-request/respond', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                request_id: request.request_id,
+                action
+              })
+            });
+
+            const resultData = await result.json();
+
+            if (!result.ok || !resultData.success) {
+              message.textContent = resultData.error || 'Unable to process request.';
+              button.disabled = false;
+              return;
+            }
+
+            message.textContent = action === 'accept'
+              ? 'Connection accepted.'
+              : 'Request declined.';
+
+            await loadIncomingRequests();
+          } catch (error) {
+            console.error('Responding to connection request failed:', error);
+            message.textContent = 'Network error. Please try again.';
+            button.disabled = false;
+          }
+        });
+
+        card.appendChild(button);
+      });
+
+      list.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Loading incoming requests failed:', error);
+    message.textContent = 'Network error while loading requests.';
+  }
+}
 </script>
+
+<section id="incomingRequestsSection" style="max-width:900px; margin:40px auto; padding:20px;">
+  <h2>Incoming Connection Requests</h2>
+  <p>People who would like to connect with you.</p>
+  <button type="button" onclick="loadIncomingRequests()">Refresh Requests</button>
+  <p id="incomingRequestsMessage" role="status">Select Refresh Requests to check for new requests.</p>
+  <div id="incomingRequestsList"></div>
+</section>

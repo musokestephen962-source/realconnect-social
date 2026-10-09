@@ -655,6 +655,140 @@ token
     }
 
     // Get profiles for Discover
+
+    // Get incoming connection requests for the logged-in member
+    if (url.pathname === "/api/connection-requests" && request.method === "GET") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Not authenticated" },
+            { status: 401 }
+          );
+        }
+
+        const result = await env.DB.prepare(`
+          SELECT
+            cr.id AS request_id,
+            cr.sender_id,
+            cr.created_at,
+            u.name AS sender_name,
+            p.location,
+            p.age,
+            p.interests,
+            p.bio
+          FROM connection_requests cr
+          JOIN users u ON u.id = cr.sender_id
+          LEFT JOIN profiles p ON p.user_id = cr.sender_id
+          WHERE cr.receiver_id = ?
+            AND cr.status = 'pending'
+          ORDER BY cr.created_at DESC
+        `).bind(user.id).all();
+
+        return Response.json({
+          success: true,
+          requests: result.results
+        });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: "Unable to load requests" },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Accept or decline an incoming connection request
+    if (url.pathname === "/api/connection-request/respond" && request.method === "POST") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Not authenticated" },
+            { status: 401 }
+          );
+        }
+
+        const body = await request.json();
+        const requestId = Number(body.request_id);
+        const action = body.action;
+
+        if (!Number.isInteger(requestId) || requestId < 1 ||
+            !["accept", "decline"].includes(action)) {
+          return Response.json(
+            { success: false, error: "Invalid request ID or action" },
+            { status: 400 }
+          );
+        }
+
+        const connectionRequest = await env.DB.prepare(`
+          SELECT id, sender_id, receiver_id
+          FROM connection_requests
+          WHERE id = ?
+            AND receiver_id = ?
+            AND status = 'pending'
+          LIMIT 1
+        `).bind(requestId, user.id).first();
+
+        if (!connectionRequest) {
+          return Response.json(
+            { success: false, error: "Request not found or already handled" },
+            { status: 404 }
+          );
+        }
+
+        if (action === "decline") {
+          await env.DB.prepare(`
+            UPDATE connection_requests
+            SET status = 'declined'
+            WHERE id = ?
+              AND receiver_id = ?
+              AND status = 'pending'
+          `).bind(requestId, user.id).run();
+
+          return Response.json({ success: true, status: "declined" });
+        }
+
+        const senderId = Number(connectionRequest.sender_id);
+        const receiverId = Number(connectionRequest.receiver_id);
+
+        await env.DB.batch([
+          env.DB.prepare(`
+            INSERT INTO connections (user_id, connected_user_id)
+            SELECT ?, ?
+            WHERE NOT EXISTS (
+              SELECT 1 FROM connections
+              WHERE user_id = ? AND connected_user_id = ?
+            )
+          `).bind(senderId, receiverId, senderId, receiverId),
+
+          env.DB.prepare(`
+            INSERT INTO connections (user_id, connected_user_id)
+            SELECT ?, ?
+            WHERE NOT EXISTS (
+              SELECT 1 FROM connections
+              WHERE user_id = ? AND connected_user_id = ?
+            )
+          `).bind(receiverId, senderId, receiverId, senderId),
+
+          env.DB.prepare(`
+            UPDATE connection_requests
+            SET status = 'accepted'
+            WHERE id = ?
+              AND receiver_id = ?
+              AND status = 'pending'
+          `).bind(requestId, user.id)
+        ]);
+
+        return Response.json({ success: true, status: "accepted" });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: "Unable to respond to request" },
+          { status: 500 }
+        );
+      }
+    }
     if (url.pathname === "/api/profiles" && request.method === "GET") {
       try {
         const result = await env.DB

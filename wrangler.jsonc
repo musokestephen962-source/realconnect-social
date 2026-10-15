@@ -1,17 +1,45 @@
 {
-  "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "realconnect-social",
-  "main": "./worker.js",
-  "compatibility_date": "2026-09-18",
-  "assets": {
-    "directory": "./",
-    "binding": "ASSETS"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "realconnect-db",
-      "database_id": "0f69926b-7999-4d62-8f77-cb5a40aa8813"
-    }
-  ]
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "realconnect-social",
+	"main": "./worker.js",
+	"compatibility_date": "2026-09-18",
+	"assets": {
+		"directory": "./",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "realconnect-db",
+			"database_id": "0f69926b-7999-4d62-8f77-cb5a40aa8813"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "PHOTOS",
+			"bucket_name": "realconnect-profile-photos"
+		}
+	],
+	"routes": [
+		{
+			"pattern": "realconnect.social",
+			"zone_name": "realconnect.social",
+			"custom_domain": true
+		}
+	],
+	"observability": {
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 1,
+			"invocation_logs": true,
+			"persist": true
+		},
+		"traces": {
+			"enabled": false,
+			"head_sampling_rate": 1,
+			"persist": true
+		}
+	},
+	"workers_dev": true,
+	"preview_urls": true
 }

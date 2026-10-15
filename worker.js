@@ -425,6 +425,7 @@ token
         const age = Number(body.age);
         const interests = String(body.interests || "").trim();
         const bio = String(body.bio || "").trim();
+        const religion = String(body.religion || "").trim();
 
         if (
           !location ||
@@ -457,7 +458,7 @@ token
           await env.DB
             .prepare(
               `UPDATE profiles
-               SET location = ?, age = ?, interests = ?, bio = ?
+               SET location = ?, age = ?, interests = ?, bio = ?, religion = ?
                WHERE user_id = ?`
             )
             .bind(
@@ -465,6 +466,7 @@ token
               age,
               interests,
               bio,
+              religion,
               user.id
             )
             .run();
@@ -472,20 +474,21 @@ token
           await env.DB
             .prepare(
               `INSERT INTO profiles
-               (user_id, location, age, interests, bio)
-               VALUES (?, ?, ?, ?, ?)`
+               (user_id, location, age, interests, bio, religion)
+               VALUES (?, ?, ?, ?, ?, ?)`
             )
             .bind(
               user.id,
               location,
               age,
               interests,
-              bio
+              bio,
+              religion
             )
             .run();
         }
 
-        return new Response(
+              return new Response(
           JSON.stringify({
             success: true,
             message: "Profile saved"
@@ -512,12 +515,9 @@ token
         );
       }
     }
-
-    // Send a connection request
+        // Send an authenticated connection request
     if (url.pathname === "/api/connection-request" && request.method === "POST") {
       try {
-        const body = await request.json();
-
         const user = await getAuthenticatedUser(request, env);
 
         if (!user) {
@@ -535,6 +535,7 @@ token
           );
         }
 
+        const body = await request.json();
         const senderId = user.id;
         const receiverId = Number(body.receiver_id);
 
@@ -789,23 +790,636 @@ token
         );
       }
     }
+        if (url.pathname === "/api/connections" && request.method === "GET") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Please log in" },
+            { status: 401 }
+          );
+        }
+
+        const result = await env.DB.prepare(`
+          SELECT
+            u.id AS user_id,
+            u.name,
+            p.location,
+            p.age,
+            p.interests,
+            p.bio,
+            CASE
+              WHEN p.avatar_key IS NOT NULL
+              THEN '/api/profile-photo/' || u.id
+              ELSE NULL
+            END AS photo_url
+          FROM connections c
+          JOIN users u ON u.id = c.connected_user_id
+          LEFT JOIN profiles p ON p.user_id = u.id
+          WHERE c.user_id = ?
+          ORDER BY u.name
+        `).bind(user.id).all();
+
+        return Response.json({
+          success: true,
+          connections: result.results || []
+        });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: "Unable to load connections" },
+          { status: 500 }
+        );
+
+      }
+    }
+
+    // Load messages between accepted connections
+    if (url.pathname === "/api/messages" && request.method === "GET") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Please log in" },
+            { status: 401 }
+          );
+        }
+
+        const receiverId = Number(url.searchParams.get("with"));
+
+        if (!Number.isInteger(receiverId) || receiverId <= 0 || receiverId === user.id) {
+          return Response.json(
+            { success: false, error: "Invalid connection" },
+            { status: 400 }
+          );
+        }
+
+        const connected = await env.DB.prepare(`
+          SELECT 1
+          FROM connections a
+          JOIN connections b
+            ON b.user_id = a.connected_user_id
+           AND b.connected_user_id = a.user_id
+          WHERE a.user_id = ? AND a.connected_user_id = ?
+          LIMIT 1
+        `).bind(user.id, receiverId).first();
+
+        if (!connected) {
+          return Response.json(
+            { success: false, error: "Messages are only available to accepted connections" },
+            { status: 403 }
+          );
+        }
+
+        const result = await env.DB.prepare(`
+          SELECT id, sender_id, receiver_id, body, created_at
+          FROM messages
+          WHERE (sender_id = ? AND receiver_id = ?)
+             OR (sender_id = ? AND receiver_id = ?)
+          ORDER BY id DESC
+          LIMIT 100
+        `).bind(user.id, receiverId, receiverId, user.id).all();
+
+        return Response.json({
+          success: true,
+          messages: (result.results || []).reverse()
+        });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: "Unable to load messages" },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Send a message to an accepted connection
+    if (url.pathname === "/api/messages" && request.method === "POST") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Please log in" },
+            { status: 401 }
+          );
+        }
+
+        const data = await request.json();
+        const receiverId = Number(data.receiver_id);
+        const body = typeof data.body === "string" ? data.body.trim() : "";
+
+        if (!Number.isInteger(receiverId) || receiverId <= 0 || receiverId === user.id) {
+          return Response.json(
+            { success: false, error: "Invalid connection" },
+            { status: 400 }
+          );
+        }
+
+        if (!body || body.length > 2000) {
+          return Response.json(
+            { success: false, error: "Message must be between 1 and 2000 characters" },
+            { status: 400 }
+          );
+        }
+
+        const connected = await env.DB.prepare(`
+          SELECT 1
+          FROM connections a
+          JOIN connections b
+            ON b.user_id = a.connected_user_id
+           AND b.connected_user_id = a.user_id
+          WHERE a.user_id = ? AND a.connected_user_id = ?
+          LIMIT 1
+        `).bind(user.id, receiverId).first();
+
+        if (!connected) {
+          return Response.json(
+            { success: false, error: "You can only message accepted connections" },
+            { status: 403 }
+          );
+        }
+
+        const result = await env.DB.prepare(`
+          INSERT INTO messages (sender_id, receiver_id, body)
+          VALUES (?, ?, ?)
+        `).bind(user.id, receiverId, body).run();
+
+        return Response.json({
+          success: true,
+          message_id: result.meta?.last_row_id
+        });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: "Unable to send message" },
+          { status: 500 }
+        );
+      }
+    }
+    
+    
+    // Remove the authenticated member's profile photo
+    if (url.pathname === "/api/profile/photo" && request.method === "DELETE") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Please log in first" },
+            { status: 401 }
+          );
+        }
+
+        const profile = await env.DB
+          .prepare("SELECT avatar_key FROM profiles WHERE user_id = ? LIMIT 1")
+          .bind(user.id)
+          .first();
+
+        if (profile?.avatar_key) {
+          await env.DB
+            .prepare("UPDATE profiles SET avatar_key = NULL WHERE user_id = ?")
+            .bind(user.id)
+            .run();
+
+          await env.PHOTOS.delete(profile.avatar_key);
+        }
+
+        return Response.json({ success: true });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: "Unable to remove profile photo" },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Upload a profile photo for the authenticated member
+
+    if (url.pathname === "/api/profile/photo" && request.method === "POST") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Please log in to upload a photo"
+            }),
+            {
+              status: 401,
+              headers: { "content-type": "application/json" }
+            }
+          );
+        }
+
+        const profile = await env.DB
+          .prepare("SELECT avatar_key FROM profiles WHERE user_id = ? LIMIT 1")
+          .bind(user.id)
+          .first();
+
+        if (!profile) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Please save your profile before uploading a photo"
+            }),
+            {
+              status: 400,
+              headers: { "content-type": "application/json" }
+            }
+          );
+        }
+
+        const formData = await request.formData();
+        const photo = formData.get("photo");
+
+        if (!photo || typeof photo.arrayBuffer !== "function") {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Choose an image file"
+            }),
+            {
+              status: 400,
+              headers: { "content-type": "application/json" }
+            }
+          );
+        }
+
+        if (photo.size === 0 || photo.size > 5 * 1024 * 1024) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Photo must be larger than 0 bytes and no more than 5 MB"
+            }),
+            {
+              status: 400,
+              headers: { "content-type": "application/json" }
+            }
+          );
+        }
+
+        const imageBuffer = await photo.arrayBuffer();
+        const bytes = new Uint8Array(imageBuffer);
+        let extension = "";
+        let contentType = "";
+        if (
+          bytes.length >= 3 &&
+          bytes[0] === 0xff &&
+          bytes[1] === 0xd8 &&
+          bytes[2] === 0xff
+        ) {
+          extension = "jpg";
+          contentType = "image/jpeg";
+        } else if (
+          bytes.length >= 8 &&
+          bytes[0] === 0x89 &&
+          bytes[1] === 0x50 &&
+          bytes[2] === 0x4e &&
+          bytes[3] === 0x47 &&
+          bytes[4] === 0x0d &&
+          bytes[5] === 0x0a &&
+          bytes[6] === 0x1a &&
+          bytes[7] === 0x0a
+        ) {
+          extension = "png";
+          contentType = "image/png";
+        } else if (
+          bytes.length >= 12 &&
+          bytes[0] === 0x52 &&
+          bytes[1] === 0x49 &&
+          bytes[2] === 0x46 &&
+          bytes[3] === 0x46 &&
+          bytes[8] === 0x57 &&
+          bytes[9] === 0x45 &&
+          bytes[10] === 0x42 &&
+          bytes[11] === 0x50
+        ) {
+          extension = "webp";
+          contentType = "image/webp";
+        }
+
+        if (!contentType || photo.type !== contentType) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Use a valid JPEG, PNG, or WebP image"
+            }),
+            {
+              status: 400,
+              headers: { "content-type": "application/json" }
+            }
+          );
+        }
+
+        const avatarKey =
+          `avatars/${user.id}/${crypto.randomUUID()}.${extension}`;
+
+        await env.PHOTOS.put(avatarKey, imageBuffer, {
+          httpMetadata: { contentType }
+        });
+
+        try {
+          await env.DB
+            .prepare("UPDATE profiles SET avatar_key = ? WHERE user_id = ?")
+            .bind(avatarKey, user.id)
+            .run();
+        } catch (databaseError) {
+          await env.PHOTOS.delete(avatarKey);
+          throw databaseError;
+        }
+
+        if (profile.avatar_key) {
+          await env.PHOTOS.delete(profile.avatar_key);
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            photo_url: `/api/profile-photo/${user.id}`
+          }),
+          {
+            headers: { "content-type": "application/json" }
+          }
+        );
+      } catch (error) {
+        return new Response(
+          JSON.stringify({
+          success: false,
+error: "Unable to upload profile photo"
+          }),
+          {
+            status: 500,
+            headers: { "content-type": "application/json" }
+          }
+        );
+      }
+    }
+    
+    // Upload an additional gallery photo
+    if (url.pathname === "/api/profile/photos" && request.method === "POST") {
+      try {
+        const user = await getAuthenticatedUser(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Please log in first" },
+            { status: 401 }
+          );
+        }
+
+        const profile = await env.DB
+          .prepare("SELECT id FROM profiles WHERE user_id = ? LIMIT 1")
+          .bind(user.id)
+          .first();
+
+        if (!profile) {
+          return Response.json(
+            { success: false, error: "Please save your profile first" },
+            { status: 400 }
+          );
+        }
+
+        const count = await env.DB
+          .prepare("SELECT COUNT(*) AS total FROM profile_photos WHERE user_id = ?")
+          .bind(user.id)
+          .first();
+
+        if (count.total >= 10) {
+          return Response.json(
+            { success: false, error: "You can upload up to 10 gallery photos" },
+            { status: 400 }
+          );
+        }
+
+        const formData = await request.formData();
+        const photo = formData.get("photo");
+
+        if (!photo || typeof photo.arrayBuffer !== "function" ||
+            photo.size === 0 || photo.size > 5 * 1024 * 1024) {
+          return Response.json(
+            { success: false, error: "Choose an image up to 5 MB" },
+            { status: 400 }
+          );
+        }
+
+        const imageBuffer = await photo.arrayBuffer();
+        const bytes = new Uint8Array(imageBuffer);
+        let extension = "";
+        let contentType = "";
+
+        if (bytes.length >= 3 && bytes[0] === 0xff &&
+            bytes[1] === 0xd8 && bytes[2] === 0xff) {
+          extension = "jpg";
+          contentType = "image/jpeg";
+        } else if (bytes.length >= 8 && bytes[0] === 0x89 &&
+            bytes[1] === 0x50 && bytes[2] === 0x4e &&
+            bytes[3] === 0x47 && bytes[4] === 0x0d &&
+            bytes[5] === 0x0a && bytes[6] === 0x1a &&
+            bytes[7] === 0x0a) {
+          extension = "png";
+          contentType = "image/png";
+        } else if (bytes.length >= 12 &&
+            bytes[0] === 0x52 && bytes[1] === 0x49 &&
+            bytes[2] === 0x46 && bytes[3] === 0x46 &&
+            bytes[8] === 0x57 && bytes[9] === 0x45 &&
+            bytes[10] === 0x42 && bytes[11] === 0x50) {
+          extension = "webp";
+          contentType = "image/webp";
+        }
+
+        if (!contentType || photo.type !== contentType) {
+          return Response.json(
+            { success: false, error: "Use a valid JPEG, PNG, or WebP image" },
+            { status: 400 }
+          );
+        }
+
+        const photoKey = `gallery/${user.id}/${crypto.randomUUID()}.${extension}`;
+
+        await env.PHOTOS.put(photoKey, imageBuffer, {
+          httpMetadata: { contentType }
+        });
+
+        try {
+          await env.DB
+            .prepare(
+              "INSERT INTO profile_photos (user_id, photo_key, content_type) VALUES (?, ?, ?)"
+            )
+            .bind(user.id, photoKey, contentType)
+            .run();
+        } catch (error) {
+          await env.PHOTOS.delete(photoKey);
+          throw error;
+        }
+
+        return Response.json({ success: true });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: "Unable to upload gallery photo" },
+          { status: 500 }
+        );
+      }
+    }
+
+    // List gallery photos for a member
+    if (url.pathname === "/api/profile-photos" && request.method === "GET") {
+      const userId = Number(url.searchParams.get("user_id"));
+
+      if (!Number.isInteger(userId) || userId < 1) {
+        return Response.json(
+          { success: false, error: "A valid member ID is required" },
+          { status: 400 }
+        );
+      }
+
+      const result = await env.DB
+        .prepare(
+          "SELECT id, created_at FROM profile_photos WHERE user_id = ? ORDER BY id DESC"
+        )
+        .bind(userId)
+        .all();
+
+      return Response.json({
+        success: true,
+        photos: result.results.map(photo => ({
+          id: photo.id,
+          url: `/api/gallery-photo/${photo.id}`,
+          created_at: photo.created_at
+        }))
+      });
+    }
+
+    // Serve one gallery photo
+    const galleryPhotoMatch = url.pathname.match(/^\/api\/gallery-photo\/(\d+)$/);
+
+    if (galleryPhotoMatch && request.method === "GET") {
+      const photoId = Number(galleryPhotoMatch[1]);
+
+      const record = await env.DB
+        .prepare("SELECT photo_key, content_type FROM profile_photos WHERE id = ?")
+        .bind(photoId)
+        .first();
+
+      if (!record) {
+        return new Response("Photo not found", { status: 404 });
+      }
+
+      const photo = await env.PHOTOS.get(record.photo_key);
+
+      if (!photo) {
+        return new Response("Photo not found", { status: 404 });
+      }
+
+      return new Response(photo.body, {
+        headers: {
+          "content-type": record.content_type,
+          "cache-control": "public, max-age=3600",
+          "x-content-type-options": "nosniff"
+        }
+      });
+    }
+
+    // Delete one gallery photo belonging to the authenticated member
+    const deleteGalleryMatch = url.pathname.match(/^\/api\/profile\/photos\/(\d+)$/);
+
+    if (deleteGalleryMatch && request.method === "DELETE") {
+      const user = await getAuthenticatedUser(request, env);
+
+      if (!user) {
+        return Response.json(
+          { success: false, error: "Please log in first" },
+          { status: 401 }
+        );
+      }
+
+      const photoId = Number(deleteGalleryMatch[1]);
+
+      const record = await env.DB
+        .prepare("SELECT photo_key FROM profile_photos WHERE id = ? AND user_id = ?")
+        .bind(photoId, user.id)
+        .first();
+
+      if (!record) {
+        return Response.json(
+          { success: false, error: "Photo not found" },
+          { status: 404 }
+        );
+      }
+
+      await env.DB
+        .prepare("DELETE FROM profile_photos WHERE id = ? AND user_id = ?")
+        .bind(photoId, user.id)
+        .run();
+
+      await env.PHOTOS.delete(record.photo_key);
+
+      return Response.json({ success: true });
+    }
+
+    // Serve a member's profile photo from private R2 storage
+    const photoMatch = url.pathname.match(/^\/api\/profile-photo\/(\d+)$/);
+
+    if (photoMatch && request.method === "GET") {
+      try {
+        const memberId = Number(photoMatch[1]);
+
+        const profile = await env.DB
+          .prepare("SELECT avatar_key FROM profiles WHERE user_id = ? LIMIT 1")
+          .bind(memberId)
+          .first();
+
+        if (!profile || !profile.avatar_key) {
+          return new Response("Photo not found", { status: 404 });
+        }
+
+        const photo = await env.PHOTOS.get(profile.avatar_key);
+
+        if (!photo) {
+          return new Response("Photo not found", { status: 404 });
+        }
+
+        const contentType = photo.httpMetadata?.contentType;
+
+        if (!["image/jpeg", "image/png", "image/webp"].includes(contentType)) {
+          return new Response("Invalid photo type", { status: 415 });
+        }
+
+        return new Response(photo.body, {
+          headers: {
+            "content-type": contentType,
+            "cache-control": "public, max-age=3600",
+            "x-content-type-options": "nosniff"
+          }
+        });
+      } catch (error) {
+        return new Response("Unable to load photo", { status: 500 });
+      }
+    }
+
+    // Load member profiles for Discover
     if (url.pathname === "/api/profiles" && request.method === "GET") {
       try {
         const result = await env.DB
-          .prepare(
-            `SELECT
+          .prepare(`
+            SELECT
               profiles.id,
               profiles.user_id,
               users.name,
               profiles.location,
               profiles.age,
               profiles.interests,
-              profiles.bio
-             FROM profiles
-             JOIN users
-               ON users.id = profiles.user_id
-             ORDER BY profiles.id DESC`
-          )
+              profiles.bio,
+              profiles.religion,
+              CASE
+                WHEN profiles.avatar_key IS NOT NULL
+                THEN '/api/profile-photo/' || profiles.user_id
+                ELSE NULL
+              END AS photo_url
+            FROM profiles
+            JOIN users ON users.id = profiles.user_id
+            ORDER BY profiles.id DESC
+          `)
           .all();
 
         return new Response(
@@ -819,7 +1433,6 @@ token
             }
           }
         );
-
       } catch (error) {
         return new Response(
           JSON.stringify({

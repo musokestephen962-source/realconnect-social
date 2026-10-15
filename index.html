@@ -711,7 +711,11 @@ async function loadProfiles(){
 function card(p){
   return `
     <article class="profile-card">
-      <div class="avatar">${p.name[0]}</div>
+<div class="avatar">
+  ${p.photo_url
+    ? `<img src="${p.photo_url}" alt="${p.name}'s profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : p.name[0]}
+</div>
 
       <div>
         <h3>${p.name}</h3>
@@ -849,7 +853,6 @@ function applyFilters(){
       !type ||
       String(p.type)
         .toLowerCase() === type;
-
     const matchesInterest =
       !interest ||
       (p.interests || []).some(i =>
@@ -937,9 +940,7 @@ function viewProfile(name){
           onclick="closeProfile()"
           aria-label="Close profile"
         >
-          ×
         </button>
-        
 <button
   id="connect-${profile.name.replace(/\s+/g, '-')}"
   class="connect-btn"
@@ -947,11 +948,11 @@ function viewProfile(name){
 >
   ${JSON.parse(localStorage.getItem('realconnectConnections') || '[]').includes(profile.name) ? 'Request Sent ✓' : 'Connect'}
 </button>
-
-        <div class="avatar profile-avatar">
-          ${profile.name[0]}
-        </div>
-
+<div class="avatar profile-avatar">
+  ${profile.photo_url
+    ? `<img src="${profile.photo_url}" alt="${profile.name}'s profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : profile.name[0]}
+</div>
 
         <h2>${profile.name}</h2>
 

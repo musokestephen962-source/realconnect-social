@@ -318,6 +318,16 @@
     <option value="40s">40s</option>
     <option value="50s">50s</option>
   </select>
+  <select id="religionFilter">
+    <option value="">All religions</option>
+    <option value="Christianity">Christianity</option>
+    <option value="Islam">Islam</option>
+    <option value="Hinduism">Hinduism</option>
+    <option value="Buddhism">Buddhism</option>
+    <option value="Traditional beliefs">Traditional beliefs</option>
+    <option value="Other">Other</option>
+    <option value="Prefer not to say">Prefer not to say</option>
+  </select>
 
   <select id="typeFilter">
     <option value="">All connection types</option>
@@ -500,39 +510,39 @@
 
     <div id="connectionsList">
       <p>No connections yet.</p>
+    </div>  
+    <div id="chatPanel" style="display:none; margin-top:24px;">
+      <h3 id="chatTitle">Messages</h3>
+      <div id="chatMessages" style="min-height:150px; max-height:350px; overflow-y:auto; padding:12px; border:1px solid #ddd; border-radius:8px;">
+        <p>Select a connection to view messages.</p>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <input id="chatInput" type="text" placeholder="Write a message..." style="flex:1;">
+        <button class="btn primary" onclick="sendChatMessage()">Send</button>
+      </div>
+      <p id="chatStatus" aria-live="polite"></p>
     </div>
   </div>
 </section>
-  <section id="connection-requests" class="search-section">
+<section id="connection-requests" class="search-section">
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">Connection Requests</div>
-      <h2>Connection Requests.</h2>
+      <h2>Connection Requests</h2>
       <p>People who want to connect with you will appear here.</p>
     </div>
 
-    <div id="requestsList">
-      <p>No connection requests yet.</p>
-    </div>
-  </div>
-</section>
-  <section id="my-profile" class="search-section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">My Profile</div>
-      <h2>Your profile.</h2>
-      <p>Your saved profile information will appear here.</p>
-    </div>
-    <div id="myProfileDisplay">
-  <p>No profile created yet.</p>
-</div>
+    <button type="button" class="btn primary"
+      onclick="loadIncomingRequests()">
+      Refresh Requests
+    </button>
 
-<button
-  class="btn primary"
-  style="margin-top:15px;"
-  onclick="editMyProfile()">
-  Edit Profile
-</button>
+    <p id="incomingRequestsMessage" role="status">
+      Select Refresh Requests to check for new requests.
+    </p>
+
+    <div id="incomingRequestsList"></div>
+  </div>
 </section>
 <section id="create-profile" class="search-section">
   <div class="wrap">
@@ -542,14 +552,52 @@
       <p>Create a profile that helps you find meaningful connections.</p>
     </div>
 
-    <div id="profileForm">
-      <input type="text" placeholder="Your name">
-      <input type="text" placeholder="Location">
-      <input type="text" placeholder="Age">
-      <input type="text" placeholder="Interests">
-      <textarea placeholder="Tell us a little about yourself"></textarea>
-      <button class="btn primary" onclick="saveMyProfile()">Save Profile</button>
-    </div>
+    
+<div id="profileForm">
+  <label for="profileName">Your name</label>
+  <input id="profileName" type="text" placeholder="Your name">
+
+  <label for="profileLocation">Location</label>
+  <input id="profileLocation" type="text" placeholder="City or country">
+
+  <label for="profileAge">Age</label>
+  <input id="profileAge" type="number" min="18" max="120" placeholder="Your age">
+
+  <label for="profileInterests">Interests</label>
+  <input id="profileInterests" type="text" placeholder="Your interests">
+
+  <label for="profileReligion">Religion (optional)</label>
+  <select id="profileReligion">
+    <option value="">Prefer not to say</option>
+    <option value="Christianity">Christianity</option>
+    <option value="Islam">Islam</option>
+    <option value="Hinduism">Hinduism</option>
+    <option value="Buddhism">Buddhism</option>
+    <option value="Traditional beliefs">Traditional beliefs</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <label for="profileBio">About you</label>
+  
+  <textarea id="profileBio" placeholder="Tell us a little about yourself"></textarea>
+<div class="profile-photo-controls">
+  <h3>Profile Photo</h3>
+  <input id="profilePhoto" type="file" accept="image/*">
+  <button type="button" class="btn" id="uploadProfilePhotoBtn">Upload Photo</button>
+  <button type="button" class="btn" id="removeProfilePhotoBtn">Remove Photo</button>
+  <p id="profilePhotoMessage" role="status"></p>
+
+  <h3>Photo Gallery</h3>
+  <input id="galleryPhoto" type="file" accept="image/*">
+  <button type="button" class="btn primary" id="uploadGalleryPhotoBtn">Add Gallery Photo</button>
+  <p id="galleryMessage" role="status"></p>
+  <div id="galleryGrid" class="gallery"></div>
+</div>
+<div id="myProfileDisplay"></div>
+
+  <p id="profileMessage" role="status"></p>
+  <button class="btn primary" onclick="saveMyProfile()">Save Profile</button>
+</div>
   </div>
 </section>
 
@@ -631,7 +679,6 @@
     </div>
   </div>
 </section>
-
 <script>
 let profiles = [];
 
@@ -775,6 +822,10 @@ function applyFilters(){
     .value
     .toLowerCase();
 
+  const religion = document.getElementById('religionFilter')
+    .value
+    .toLowerCase();
+
 
   const list = profiles.filter(p => {
 
@@ -805,13 +856,18 @@ function applyFilters(){
         String(i).toLowerCase() === interest
       );
 
+    const matchesReligion =
+      !religion ||
+      String(p.religion || '').toLowerCase() === religion;
+
 
     return (
       matchesSearch &&
       matchesLocation &&
       matchesAge &&
       matchesType &&
-      matchesInterest
+      matchesInterest &&
+      matchesReligion
     );
   });
 
@@ -836,6 +892,7 @@ function clearFilters(){
   document.getElementById('typeFilter').value = '';
 
   document.getElementById('interestFilter').value = '';
+  document.getElementById('religionFilter').value = '';
 
   render(profiles);
 }
@@ -1018,7 +1075,6 @@ async function sendConnectionRequest(name){
   }
 }
 function editMyProfile(){
-
   const savedProfile =
     JSON.parse(localStorage.getItem('realconnectMyProfile') || 'null');
 
@@ -1029,19 +1085,23 @@ function editMyProfile(){
 
   const fields =
     document.querySelectorAll(
-      '#profileForm input, #profileForm textarea'
+      '#profileForm input:not([type="file"]), #profileForm textarea'
     );
 
   fields[0].value = savedProfile.name || '';
   fields[1].value = savedProfile.location || '';
   fields[2].value = savedProfile.age || '';
   fields[3].value = savedProfile.interests || '';
-  fields[4].value = savedProfile.bio || '';
+  document.getElementById('profileBio').value = savedProfile.bio || '';
+  document.getElementById('profileReligion').value =
+    savedProfile.religion || '';
 
   document.getElementById('create-profile').scrollIntoView({
-    behavior:'smooth'
+    behavior: 'smooth'
   });
-}async function saveMyProfile(){
+}
+
+async function saveMyProfile(){
 
   const token =
     localStorage.getItem('realconnectToken');
@@ -1051,30 +1111,29 @@ function editMyProfile(){
     return;
   }
 
-  const fields =
-    document.querySelectorAll(
-      '#profileForm input, #profileForm textarea'
-    );
-
   const savedUser =
     JSON.parse(
       localStorage.getItem('realconnectUser') || 'null'
     );
 
   const name =
-    savedUser?.name || fields[0].value.trim();
+    savedUser?.name ||
+    document.getElementById('profileName').value.trim();
 
   const location =
-    fields[1].value.trim();
+    document.getElementById('profileLocation').value.trim();
 
   const age =
-    Number(fields[2].value.trim());
+    Number(document.getElementById('profileAge').value);
 
   const interests =
-    fields[3].value.trim();
+    document.getElementById('profileInterests').value.trim();
 
   const bio =
-    fields[4].value.trim();
+    document.getElementById('profileBio').value.trim();
+
+  const religion =
+    document.getElementById('profileReligion').value;
 
   if(!name || !location || !Number.isInteger(age) || age < 18 || age > 120){
     alert('Please enter your name, location, and a valid age between 18 and 120.');
@@ -1094,7 +1153,8 @@ function editMyProfile(){
           location,
           age,
           interests,
-          bio
+          bio,
+          religion
         })
       });
 
@@ -1111,7 +1171,8 @@ function editMyProfile(){
       location,
       age,
       interests,
-      bio
+      bio,
+      religion
     };
 
     localStorage.setItem(
@@ -1231,6 +1292,10 @@ async function loginUser(){
       loginNav.textContent = 'Log Out';
     }
 
+    await loadProfiles();
+    await loadIncomingRequests();
+    await loadConnections();
+
   } catch(error) {
 
     loginMessage.textContent =
@@ -1279,11 +1344,11 @@ document.addEventListener(
     const loginMessage =
   document.getElementById('loginMessage');
 
-if(loggedIn === 'true' && loginMessage){
+if(loggedIn && loginMessage){
   loginMessage.textContent =
     'Welcome back! You’re currently logged in.';
 }
-    if(loggedIn === 'true'){
+    if(loggedIn){
   console.log('Login session active.');
 }
     const searchInput =
@@ -1343,6 +1408,16 @@ if(loggedIn === 'true' && loginMessage){
         applyFilters
       );
     }
+
+    const religionFilter =
+      document.getElementById('religionFilter');
+
+    if(religionFilter){
+      religionFilter.addEventListener(
+        'change',
+        applyFilters
+      );
+    }
 const savedProfile =
   JSON.parse(localStorage.getItem('realconnectMyProfile') || 'null');
 
@@ -1358,6 +1433,8 @@ if(savedProfile && myProfileDisplay){
   `;
 }
     loadProfiles();
+    loadIncomingRequests();
+    loadConnections();
   }
 );
 
@@ -1525,12 +1602,351 @@ async function loadIncomingRequests() {
     message.textContent = 'Network error while loading requests.';
   }
 }
+
+let activeChatUserId = null;
+let activeChatUserName = "";
+
+async function loadConnections() {
+  const list = document.getElementById("connectionsList");
+  const token = localStorage.getItem("realconnectToken");
+
+  if (!list) return;
+
+  if (!token) {
+    list.textContent = "Please log in to view your connections.";
+    return;
+  }
+
+  list.textContent = "Loading connections...";
+
+  try {
+    const response = await fetch("/api/connections", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      list.textContent = data.error || "Unable to load connections.";
+      return;
+    }
+
+    list.replaceChildren();
+
+    if (!data.connections || data.connections.length === 0) {
+      list.textContent = "No connections yet.";
+      return;
+    }
+
+    data.connections.forEach(connection => {
+      const card = document.createElement("div");
+      card.style.cssText =
+        "border:1px solid #ddd;border-radius:10px;padding:14px;margin:10px 0;";
+
+      const name = document.createElement("h3");
+      name.textContent = connection.name || "RealConnect member";
+      card.appendChild(name);
+
+      const details = document.createElement("p");
+      details.textContent = [
+        connection.location || "",
+        connection.age ? `Age: ${connection.age}` : "",
+        connection.interests || ""
+      ].filter(Boolean).join(" · ");
+      card.appendChild(details);
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "btn primary";
+      button.textContent = "Message";
+      button.addEventListener("click", () => {
+        openChat(connection.user_id, connection.name || "RealConnect member");
+      });
+      card.appendChild(button);
+
+      list.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Loading connections failed:", error);
+    list.textContent = "Network error while loading connections.";
+  }
+}
+
+async function openChat(userId, userName) {
+  activeChatUserId = Number(userId);
+  activeChatUserName = userName;
+
+  const panel = document.getElementById("chatPanel");
+  const title = document.getElementById("chatTitle");
+  const status = document.getElementById("chatStatus");
+
+  if (!Number.isInteger(activeChatUserId) || activeChatUserId <= 0) {
+    activeChatUserId = null;
+    if (status) status.textContent = "Invalid connection.";
+    return;
+  }
+
+  panel.style.display = "block";
+  title.textContent = `Messages with ${activeChatUserName}`;
+  status.textContent = "";
+  await loadChatMessages();
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function loadChatMessages() {
+  const messagesBox = document.getElementById("chatMessages");
+  const status = document.getElementById("chatStatus");
+  const token = localStorage.getItem("realconnectToken");
+
+  if (!activeChatUserId || !token) {
+    status.textContent = "Please log in and select a connection.";
+    return;
+  }
+
+  messagesBox.textContent = "Loading messages...";
+
+  try {
+    const response = await fetch(
+      `/api/messages?with=${encodeURIComponent(activeChatUserId)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      messagesBox.textContent = data.error || "Unable to load messages.";
+      return;
+    }
+
+    messagesBox.replaceChildren();
+
+    if (!data.messages || data.messages.length === 0) {
+      messagesBox.textContent = "No messages yet. Say hello!";
+      return;
+    }
+
+    data.messages.forEach(message => {
+      const item = document.createElement("p");
+      item.style.cssText =
+        "padding:8px 10px;margin:8px 0;border-radius:8px;background:#f3f4f6;";
+      item.textContent = `${Number(message.sender_id) === Number(activeChatUserId) ? activeChatUserName : "You"}: ${message.body}`;
+      messagesBox.appendChild(item);
+    });
+
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+    status.textContent = "";
+  } catch (error) {
+    console.error("Loading messages failed:", error);
+    status.textContent = "Network error while loading messages.";
+  }
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const status = document.getElementById("chatStatus");
+  const token = localStorage.getItem("realconnectToken");
+  const body = input.value.trim();
+
+  if (!token) {
+    status.textContent = "Please log in to send messages.";
+    return;
+  }
+  if (!activeChatUserId) {
+    status.textContent = "Select a connection before sending a message.";
+    return;
+  }
+  if (!body) {
+    status.textContent = "Write a message first.";
+    return;
+  }
+
+  status.textContent = "Sending...";
+
+  try {
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        receiver_id: activeChatUserId,
+        body
+      })
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      status.textContent = data.error || "Unable to send message.";
+      return;
+    }
+
+    input.value = "";
+    await loadChatMessages();
+    status.textContent = "Message sent.";
+  } catch (error) {
+    console.error("Sending message failed:", error);
+    status.textContent = "Network error while sending message.";
+  }
+}
+
+async function uploadProfilePhoto() {
+  const token = localStorage.getItem('realconnectToken');
+  const file = document.getElementById('profilePhoto').files[0];
+  const message = document.getElementById('profilePhotoMessage');
+
+  if (!token) {
+    message.textContent = 'Please log in first.';
+    return;
+  }
+  if (!file) {
+    message.textContent = 'Choose a photo first.';
+    return;
+  }
+  if (file.size === 0 || file.size > 5 * 1024 * 1024) {
+    message.textContent = 'Choose a photo no larger than 5 MB.';
+    return;
+  }
+
+  const form = new FormData();
+  form.append('photo', file);
+  message.textContent = 'Uploading photo…';
+
+  try {
+    const response = await fetch('/api/profile/photo', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Photo upload failed.');
+    }
+
+    message.textContent = 'Profile photo uploaded.';
+    document.getElementById('profilePhoto').value = '';
+    await loadProfiles();
+  } catch (error) {
+    message.textContent = error.message;
+  }
+}
+
+async function removeProfilePhoto() {
+  const token = localStorage.getItem('realconnectToken');
+  const message = document.getElementById('profilePhotoMessage');
+
+  if (!token) {
+    message.textContent = 'Please log in first.';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/profile/photo', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Could not remove photo.');
+    }
+
+    message.textContent = 'Profile photo removed.';
+    await loadProfiles();
+  } catch (error) {
+    message.textContent = error.message;
+  }
+}
+
+async function uploadGalleryPhoto() {
+  const token = localStorage.getItem('realconnectToken');
+  const file = document.getElementById('galleryPhoto').files[0];
+  const message = document.getElementById('galleryMessage');
+
+  if (!token) {
+    message.textContent = 'Please log in first.';
+    return;
+  }
+  if (!file) {
+    message.textContent = 'Choose a photo first.';
+    return;
+  }
+  if (file.size === 0 || file.size > 5 * 1024 * 1024) {
+    message.textContent = 'Choose a photo no larger than 5 MB.';
+    return;
+  }
+
+  const form = new FormData();
+  form.append('photo', file);
+  message.textContent = 'Uploading gallery photo…';
+
+  try {
+    const response = await fetch('/api/profile/photos', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Gallery upload failed.');
+    }
+
+    message.textContent = 'Gallery photo added.';
+    document.getElementById('galleryPhoto').value = '';
+    await loadMyGallery();
+  } catch (error) {
+    message.textContent = error.message;
+  }
+}
+
+async function loadMyGallery() {
+  const token = localStorage.getItem('realconnectToken');
+  const savedUser = JSON.parse(
+    localStorage.getItem('realconnectUser') || 'null'
+  );
+  const userId = savedUser?.id ||
+    localStorage.getItem('realconnectUserId');
+  const grid = document.getElementById('galleryGrid');
+
+  if (!token || !userId || !grid) return;
+
+  try {
+    const response = await fetch(
+      `/api/profile-photos?user_id=${encodeURIComponent(userId)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Could not load gallery.');
+    }
+
+    grid.replaceChildren();
+
+    for (const photo of (data.photos || [])) {
+      const image = document.createElement('img');
+      image.src = photo.url;
+      image.alt = 'Gallery photo';
+      image.loading = 'lazy';
+      image.style.maxWidth = '120px';
+      image.style.margin = '4px';
+      grid.appendChild(image);
+    }
+
+    if (!data.photos?.length) {
+      grid.textContent = 'No gallery photos added yet.';
+    }
+  } catch (error) {
+    document.getElementById('galleryMessage').textContent =
+      error.message;
+  }
+}
+
+document.getElementById('uploadProfilePhotoBtn')
+  ?.addEventListener('click', uploadProfilePhoto);
+
+document.getElementById('removeProfilePhotoBtn')
+  ?.addEventListener('click', removeProfilePhoto);
+
+document.getElementById('uploadGalleryPhotoBtn')
+  ?.addEventListener('click', uploadGalleryPhoto);
+
 </script>
 
-<section id="incomingRequestsSection" style="max-width:900px; margin:40px auto; padding:20px;">
-  <h2>Incoming Connection Requests</h2>
-  <p>People who would like to connect with you.</p>
-  <button type="button" onclick="loadIncomingRequests()">Refresh Requests</button>
-  <p id="incomingRequestsMessage" role="status">Select Refresh Requests to check for new requests.</p>
-  <div id="incomingRequestsList"></div>
-</section>
+ 

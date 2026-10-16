@@ -948,6 +948,7 @@ function viewProfile(name){
 >
   ${JSON.parse(localStorage.getItem('realconnectConnections') || '[]').includes(profile.name) ? 'Request Sent ✓' : 'Connect'}
 </button>
+<div id="profileMessagingActions"></div>
 <div class="avatar profile-avatar">
   ${profile.photo_url
     ? `<img src="${profile.photo_url}" alt="${profile.name}'s profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
@@ -993,10 +994,39 @@ function viewProfile(name){
     </div>
   `;
 
-
   document.body.appendChild(modal);
-}
+  const actions = modal.querySelector('#profileMessagingActions');
+  const token = localStorage.getItem('realconnectToken');
 
+  if (token && profile.user_id) {
+    fetch('/api/connections', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(response => response.json())
+      .then(data => {
+        const connected = data.success &&
+          (data.connections || []).some(
+            c => Number(c.user_id) === Number(profile.user_id)
+          );
+
+        if (!connected || !actions || !modal.isConnected) return;
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn primary';
+        button.textContent = 'Message';
+        button.addEventListener('click', () => {
+          openChat(profile.user_id, profile.name);
+        });
+
+        actions.appendChild(button);
+
+        const connectButton = modal.querySelector('.connect-btn');
+        if (connectButton) connectButton.hidden = true;
+      })
+      .catch(error => console.error('Could not check connection:', error));
+  }
+}
 
 function closeProfile(){
 
